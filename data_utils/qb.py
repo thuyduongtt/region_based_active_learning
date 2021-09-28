@@ -37,6 +37,8 @@ def get_file_list(split='train'):
     train_label_filename = []
 
     for regionOrPatch in Path(path, input_dir_1).iterdir():
+        if regionOrPatch.name.startswith('.'):
+            continue
         if regionOrPatch.is_dir():
             for patch in regionOrPatch.iterdir():
                 train_image_filename.append((
@@ -78,7 +80,7 @@ def read_gland_data(im_list, la_list, split_name='train'):
         image_indices.append(index)
         index = index + 1
 
-    print(f'{index} Gland {split_name} images are loaded')
+    print(f'{index} {ds_name} {split_name} images are loaded')
     return images, labels, image_indices
 
 
@@ -141,7 +143,7 @@ def transfer_data_to_dict():
         print("Saving the data in path:", filename.split(".")[0])
     else:
         print("Oh, this is the first time of creating this file")
-        print("Creating the training data npy for GlaS")
+        print(f"Creating the training data npy for {ds_name}")
 
     np.save(filename.split(".")[0], data)
 

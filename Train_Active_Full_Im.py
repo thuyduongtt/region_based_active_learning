@@ -235,10 +235,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
     # batch_size = 5
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    image_w, image_h, image_c = [480, 480, 6]
+    image_w, image_h, image_c = [256, 256, 6]
     image_shape = np.array([image_w, image_h, image_c])
-    targ_height_npy = 528  # this is for padding images
-    targ_width_npy = 784  # this is for padding images
+    targ_height_npy = 256  # this is for padding images
+    targ_width_npy = 256  # this is for padding images
     flag_decay = True
     if (acq_method == "F") and (acq_index_old is None):
         learning_rate = 0.0009
