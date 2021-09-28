@@ -39,8 +39,8 @@ cd ..
 echo "print current directory"
 pwd
 echo "prepare the dataset"
-python3 -c 'import data_utils.glanddata as gd;gd.transfer_data_to_dict()'
-python3 -c 'import data_utils.glanddata as gd;gd.transfer_data_to_dict_test()'
+python3 -c 'import data_utils.qb as gd;gd.transfer_data_to_dict()'
+python3 -c 'import data_utils.qb as gd;gd.transfer_data_to_dict_test()'
 echo "-------------------------------"
 echo "YEAH, FINISH PREPARING THE DATA"
 echo "-------------------------------"

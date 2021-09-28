@@ -10,12 +10,11 @@ This script is utilized for creating the data
 
 """
 import os
+
 import numpy as np
 import scipy
-from scipy import misc
-from skimage.morphology import dilation, disk
 from scipy import ndimage
-import matplotlib.pyplot as plt
+from skimage.morphology import dilation, disk
 
 path_mom = "DATA/"  # the directory for saving data
 # path_mom = "/Users/bo/Documents/Exp_Data/"
@@ -223,7 +222,7 @@ def transfer_data_to_dict_test():
     edge_benign = extract_edge(label_benign)
     edge_mali = extract_edge(label_mali)
 
-    cla_ind_benign = np.repeat(1, 37)
+    cla_ind_benign = np.repeat(1, 37)  # Num. of test samples: benign-37, malignant-43
     cla_ind_mali = np.repeat(2, 43)
     data = defaultdict(list)
     data['image'] = image_benign

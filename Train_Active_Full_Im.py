@@ -4,7 +4,7 @@ Created on Wed Mar  7 16:42:15 2018
 Full image based active learning on GlaS dataset
 @author: s161488
 """
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from data_utils.prepare_data import prepare_train_data, padding_training_data, aug_train_data, generate_batch
 from models.inference import ResNet_V2_DMNN
 from optimization.loss_region_specific import Loss, train_op_batchnorm
@@ -17,7 +17,7 @@ import os
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
-training_data_path = "DATA/Data/glanddata.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+training_data_path = "DATA/Data/QB.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 test_data_path = "DATA/Data/glanddata_testb.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 resnet_dir = "pretrain_model/"
 exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
@@ -235,7 +235,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
     # batch_size = 5
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    image_w, image_h, image_c = [480, 480, 3]
+    image_w, image_h, image_c = [480, 480, 6]
     image_shape = np.array([image_w, image_h, image_c])
     targ_height_npy = 528  # this is for padding images
     targ_width_npy = 784  # this is for padding images
@@ -263,7 +263,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
     with tf.Graph().as_default():
         #  This three placeholder is for extracting the augmented training data##
-        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, 3])
+        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
         label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         edge_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         # The placeholder below is for extracting the input for the network #####

@@ -6,7 +6,7 @@ This file is used to train the active learning framework with region specific an
 """
 import numpy as np
 import os
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from data_utils.prepare_data import aug_train_data, generate_batch
 from data_utils.update_data import give_init_train_and_val_data, update_training_data, prepare_the_new_uncertain_input
 from models.inference import ResNet_V2_DMNN

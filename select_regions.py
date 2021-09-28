@@ -5,7 +5,7 @@ This file is for selecting the most uncertain regions in each acquisition step b
 acquisition functions given the updated model
 @author: s161488
 """
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from data_utils.prepare_data import padding_training_data, prepare_train_data
 from models.inference import ResNet_V2_DMNN
 from models.acquisition_region import select_most_uncertain_patch
