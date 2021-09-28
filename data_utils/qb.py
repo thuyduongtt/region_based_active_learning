@@ -16,6 +16,7 @@ import scipy
 from scipy import ndimage
 from skimage.morphology import dilation, disk
 from pathlib import Path
+from PIL import Image
 
 path_mom = "DATA/"  # the directory for saving data
 # path_mom = "/Users/bo/Documents/Exp_Data/"
@@ -65,11 +66,12 @@ def read_gland_data(im_list, la_list, split_name='train'):
 
     for im_filename, la_filename in zip(im_list, la_list):
         im_file_1, im_file_2 = im_filename
-        im1 = scipy.misc.imread(im_file_1)
-        im2 = scipy.misc.imread(im_file_2)
+        im1 = Image.open(im_file_1)
+        im2 = Image.open(im_file_2)
         im = np.concatenate((im1, im2), axis=-1)
 
-        la = scipy.misc.imread(la_filename)
+        label_im = Image.open(la_filename)
+        la = np.array(label_im)
 
         images.append(im)
         labels.append(la)

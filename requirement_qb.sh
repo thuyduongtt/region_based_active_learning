@@ -1,16 +1,9 @@
 #!/bin/bash
 cd DATA
-datafolder=gland_data
+datafolder=QB
 if [ -d "$datafolder" ]; then
     echo "YEAH, $datafolder exist"
     echo "next download the resnet-v2-50 pretrained weight from tensorflow website..............."
-else
-    echo "download the GlaS dataset ...................................."
-    wget https://warwick.ac.uk/fac/sci/dcs/research/tia/glascontest/download/warwick_qu_dataset_released_2016_07_08.zip
-    unzip warwick_qu_dataset_released_2016_07_08.zip
-    mv 'Warwick QU Dataset (Released 2016_07_08)' gland_data
-    rm -rf warwick_qu_dataset_released_2016_07_08.zip
-    rm -rf __MACOSX
 fi
 cd ..
 pwd
@@ -39,8 +32,8 @@ cd ..
 echo "print current directory"
 pwd
 echo "prepare the dataset"
-python3 -c 'import data_utils.glanddata as gd;gd.transfer_data_to_dict()'
-python3 -c 'import data_utils.glanddata as gd;gd.transfer_data_to_dict_test()'
+python3 -c 'import data_utils.qb as qb;qb.transfer_data_to_dict()'
+python3 -c 'import data_utils.qb as qb;qb.transfer_data_to_dict_test()'
 echo "-------------------------------"
 echo "YEAH, FINISH PREPARING THE DATA"
 echo "-------------------------------"
