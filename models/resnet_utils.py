@@ -38,7 +38,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 from tensorflow.contrib import slim
 
 
@@ -115,8 +115,8 @@ def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
         pad_total = kernel_size_effective - 1
         pad_beg = pad_total // 2
         pad_end = pad_total - pad_beg
-        inputs = tf.pad(inputs,
-                        [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+        inputs = tf.pad(tensor=inputs,
+                        paddings=[[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
         return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
                            rate=rate, padding='VALID', scope=scope)
 
@@ -179,7 +179,7 @@ def stack_blocks_dense(net, blocks, dropout_phase, output_stride=None,
     j = 0
     for block in blocks:
 
-        with tf.variable_scope(block.scope, 'block', [net]) as sc:
+        with tf.compat.v1.variable_scope(block.scope, 'block', [net]) as sc:
             block_stride = 1
             for i, unit in enumerate(block.args):
                 if store_non_strided_activations and i == len(block.args) - 1:
@@ -187,7 +187,7 @@ def stack_blocks_dense(net, blocks, dropout_phase, output_stride=None,
                     block_stride = unit.get('stride', 1)
                     unit = dict(unit, stride=1)
 
-                with tf.variable_scope('unit_%d' % (i + 1), values=[net]):
+                with tf.compat.v1.variable_scope('unit_%d' % (i + 1), values=[net]):
                     # If we have reached the target output_stride, then we need to employ
                     # atrous convolution with stride=1 and multiply the atrous rate by the
                     # current unit's stride for use in subsequent layers.
@@ -201,7 +201,7 @@ def stack_blocks_dense(net, blocks, dropout_phase, output_stride=None,
                         if output_stride is not None and current_stride > output_stride:
                             raise ValueError('The target output_stride cannot be reached.')
                 if j >= 2:
-                    net = tf.layers.dropout(net, rate=0.5, training=dropout_phase,
+                    net = tf.compat.v1.layers.dropout(net, rate=0.5, training=dropout_phase,
                                             name='unit_%d/' % (i + 1) + 'dropout')
                 # print(net)
             # Collect activations at the block's end before performing subsampling.
@@ -254,14 +254,14 @@ def resnet_arg_scope(weight_decay=0.0001,
         'decay': batch_norm_decay,
         'epsilon': batch_norm_epsilon,
         'scale': batch_norm_scale,
-        'updates_collections': tf.GraphKeys.UPDATE_OPS,
+        'updates_collections': tf.compat.v1.GraphKeys.UPDATE_OPS,
         'fused': None,  # Use fused batch norm if possible.
     }
 
     with slim.arg_scope(
             [slim.conv2d],
-            weights_regularizer=slim.l2_regularizer(weight_decay),
-            weights_initializer=slim.variance_scaling_initializer(),
+            weights_regularizer=tf.keras.regularizers.l2(0.5 * (weight_decay)),
+            weights_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0),
             activation_fn=activation_fn,
             normalizer_fn=slim.batch_norm if use_batch_norm else None,
             normalizer_params=batch_norm_params):

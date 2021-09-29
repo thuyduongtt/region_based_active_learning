@@ -6,7 +6,7 @@ This file is used to train the active learning framework with region specific an
 """
 import numpy as np
 import os
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 from data_utils.prepare_data import aug_train_data, generate_batch
 from data_utils.update_data import give_init_train_and_val_data, update_training_data, prepare_the_new_uncertain_input
 from models.inference import ResNet_V2_DMNN
@@ -220,19 +220,19 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
     # ----The part below is for extracting the initial Training Data and Initial Val Data-------------------#
     with tf.Graph().as_default():
         #  This three placeholder is for extracting the augmented training data##
-        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, 3])
-        label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
-        edge_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
-        binary_mask_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        image_aug_placeholder = tf.compat.v1.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, 3])
+        label_aug_placeholder = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        edge_aug_placeholder = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        binary_mask_aug_placeholder = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         #  The placeholder below is for extracting the input for the network #####
-        images_train = tf.placeholder(tf.float32, [batch_size, image_w, image_h, image_c])
-        instance_labels_train = tf.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
-        edges_labels_train = tf.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
-        binary_mask_train = tf.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
-        phase_train = tf.placeholder(tf.bool, shape=None, name="training_state")
-        dropout_phase = tf.placeholder(tf.bool, shape=None, name="dropout_state")
-        auxi_weight = tf.placeholder(tf.float32, shape=None, name="auxiliary_weight")
-        global_step = tf.train.get_or_create_global_step()
+        images_train = tf.compat.v1.placeholder(tf.float32, [batch_size, image_w, image_h, image_c])
+        instance_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
+        edges_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
+        binary_mask_train = tf.compat.v1.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
+        phase_train = tf.compat.v1.placeholder(tf.bool, shape=None, name="training_state")
+        dropout_phase = tf.compat.v1.placeholder(tf.bool, shape=None, name="dropout_state")
+        auxi_weight = tf.compat.v1.placeholder(tf.float32, shape=None, name="auxiliary_weight")
+        global_step = tf.compat.v1.train.get_or_create_global_step()
         #  ----------------------Here is for preparing the dataset for training, pooling and validation---#
 
         x_image_tr, y_label_tr, y_edge_tr, y_binary_mask_tr = training_data
@@ -267,7 +267,7 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
                                                   binary_mask=binary_mask_train,
                                                   auxi_weight=auxi_weight, loss_name="fb")
 
-        var_train = tf.trainable_variables()
+        var_train = tf.compat.v1.trainable_variables()
         total_loss = edge_loss + fb_loss
         if FLAG_L2_REGU is True:
             var_l2 = [v for v in var_train if (('kernel' in v.name) or ('weights' in v.name))]
@@ -279,17 +279,17 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
 
         train = train_op_batchnorm(total_loss=total_loss, global_step=global_step, initial_learning_rate=learning_rate,
                                    lr_decay_rate=decay_rate, decay_steps=decay_steps,
-                                   epsilon_opt=epsilon_opt, var_opt=tf.trainable_variables(),
+                                   epsilon_opt=epsilon_opt, var_opt=tf.compat.v1.trainable_variables(),
                                    MOVING_AVERAGE_DECAY=MOVING_AVERAGE_DECAY)
 
         # summary_op = tf.summary.merge_all()
         if FLAG_PRETRAIN is False:
             set_resnet_var = [v for v in var_train if (v.name.startswith('resnet_v2') & ('logits' not in v.name))]
-            saver_set_resnet = tf.train.Saver(set_resnet_var, max_to_keep=3)
-            saver_set_all = tf.train.Saver(tf.global_variables(), max_to_keep=1)
+            saver_set_resnet = tf.compat.v1.train.Saver(set_resnet_var, max_to_keep=3)
+            saver_set_all = tf.compat.v1.train.Saver(tf.compat.v1.global_variables(), max_to_keep=1)
 
         else:
-            saver_set_all = tf.train.Saver(max_to_keep=1)
+            saver_set_all = tf.compat.v1.train.Saver(max_to_keep=1)
 
         print("\n =====================================================")
         print("The shape of new training data", np.shape(x_image_tr)[0])
@@ -307,10 +307,10 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
         print("The checkpoing file is saved every %d steps" % save_checkpoint_period)
         print("The L2 regularization is turned on:", FLAG_L2_REGU)
         print(" =====================================================")
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             if FLAG_PRETRAIN is False:
-                sess.run(tf.global_variables_initializer())
-                sess.run(tf.local_variables_initializer())
+                sess.run(tf.compat.v1.global_variables_initializer())
+                sess.run(tf.compat.v1.local_variables_initializer())
                 saver_set_resnet.restore(sess, resnet_ckpt)
             else:
                 ckpt = tf.train.get_checkpoint_state(ckpt_dir)

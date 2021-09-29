@@ -104,11 +104,11 @@ def test(test_data_statistics_dir, ckpt_dir, test_data_path, save_stat=True):
         sample_size_space = [30]
     with tf.Graph().as_default():
         # The placeholder below is for extracting the input for the network #####
-        images_train = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
-        instance_labels_train = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy])
-        edges_labels_train = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy])
-        phase_train = tf.placeholder(tf.bool, shape=None, name="training_state")
-        dropout_phase = tf.placeholder(tf.bool, shape=None, name="dropout_state")
+        images_train = tf.compat.v1.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
+        instance_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy])
+        edges_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy])
+        phase_train = tf.compat.v1.placeholder(tf.bool, shape=None, name="training_state")
+        dropout_phase = tf.compat.v1.placeholder(tf.bool, shape=None, name="dropout_state")
         # -----------------Here is for preparing the dataset for training, pooling and validation---------###
         x_val_group = prepare_test_data(test_data_path)
         x_image_val, y_label_val, y_edge_val = padding_training_data(x_val_group[0], x_val_group[1], x_val_group[2],
@@ -122,13 +122,13 @@ def test(test_data_statistics_dir, ckpt_dir, test_data_path, save_stat=True):
         edge_prob = tf.nn.softmax(tf.add_n(ed_logits))
         fb_prob = tf.nn.softmax(tf.add_n(fb_logits))
 
-        var_train = tf.trainable_variables()
+        var_train = tf.compat.v1.trainable_variables()
         variable_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY)
         variable_averages.apply(var_train)
-        variables_to_restore = variable_averages.variables_to_restore(tf.moving_average_variables())
-        saver = tf.train.Saver(variables_to_restore)
+        variables_to_restore = variable_averages.variables_to_restore(tf.compat.v1.moving_average_variables())
+        saver = tf.compat.v1.train.Saver(variables_to_restore)
         print(" =====================================================")
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             ckpt_all = tf.train.get_checkpoint_state(ckpt_dir)
             ckpt_use = ckpt_dir + '/' + ckpt_all.model_checkpoint_path.strip().split('/')[-1]
             if os.path.isfile(ckpt_use + '.index'):
