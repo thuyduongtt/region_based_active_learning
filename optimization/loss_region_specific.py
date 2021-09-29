@@ -7,7 +7,7 @@ Created on Fri Mar  2 11:56:26 2018
 ############################################################
 #  Loss Functions
 ############################################################
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from sklearn.metrics import f1_score, roc_curve, auc
 
@@ -25,7 +25,7 @@ def calc_f1_score(pred, label):
 
 
 def tf_f1score(pred, label):
-    f1score_tensor = tf.compat.v1.py_func(calc_f1_score, [pred, label], tf.float32)
+    f1score_tensor = tf.py_func(calc_f1_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
@@ -44,7 +44,7 @@ def calc_auc_score(pred, label):
 
 
 def tf_auc_score(pred, label):
-    auc_score_tensor = tf.compat.v1.py_func(calc_auc_score, [pred, label], tf.float32)
+    auc_score_tensor = tf.py_func(calc_auc_score, [pred, label], tf.float32)
     return auc_score_tensor
 
 
@@ -73,28 +73,27 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     for i in range(Num_Map):
         cross_entropy_sep = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=tf.reshape(logits[i], [-1, 2]),
                                                                            labels=y)
-        cross_entropy_sep = tf.boolean_mask(tensor=cross_entropy_sep, mask=tf.equal(binary_mask, 1))
-        cross_entropy_sep = tf.reduce_mean(input_tensor=cross_entropy_sep, name='auxiliary' + loss_name + '%d' % i)
-        tf.compat.v1.add_to_collection('loss', cross_entropy_sep)
+        cross_entropy_sep = tf.boolean_mask(cross_entropy_sep, tf.equal(binary_mask, 1))
+        cross_entropy_sep = tf.reduce_mean(cross_entropy_sep, name='auxiliary' + loss_name + '%d' % i)
+        tf.add_to_collection('loss', cross_entropy_sep)
         cost += cross_entropy_sep
     fuse_map = tf.add_n(logits)
     fuse_cost = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=tf.reshape(fuse_map, [-1, 2]))
-    fuse_cost = tf.reduce_mean(input_tensor=tf.boolean_mask(tensor=fuse_cost, mask=tf.equal(binary_mask, 1)),
-                               name=loss_name + 'fuse_cost')
-    tf.compat.v1.add_to_collection('loss', fuse_cost)
+    fuse_cost = tf.reduce_mean(tf.boolean_mask(fuse_cost, tf.equal(binary_mask, 1)), name=loss_name + 'fuse_cost')
+    tf.add_to_collection('loss', fuse_cost)
     cost = auxi_weight * cost + fuse_cost
-    pred = tf.reshape(tf.argmax(input=fuse_map, axis=-1, output_type=tf.int32), [-1])
-    pred_bi = tf.boolean_mask(tensor=pred, mask=tf.equal(binary_mask, 1))
-    y_bi = tf.boolean_mask(tensor=y, mask=tf.equal(binary_mask, 1))
-    pred_bi_cond_f1 = tf.equal(tf.reduce_sum(input_tensor=pred_bi), 0)
-    y_bi_cond_f1 = tf.equal(tf.reduce_sum(input_tensor=y_bi), 0)
-    accuracy = tf.cond(pred=tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
-                       true_fn=lambda: tf.constant(1.0),
-                       false_fn=lambda: tf_f1score(pred=pred_bi, label=y_bi))
-    auc_pred_bi = tf.boolean_mask(tensor=tf.reshape(fuse_map[:, :, :, 1], [-1]), mask=tf.equal(binary_mask, 1))
-    auc_score = tf.cond(pred=tf.equal(tf.reduce_mean(input_tensor=y_bi), 1),
-                        true_fn=lambda: tf.constant(0.0),
-                        false_fn=lambda: tf_auc_score(pred=auc_pred_bi, label=y_bi))
+    pred = tf.reshape(tf.argmax(fuse_map, axis=-1, output_type=tf.int32), [-1])
+    pred_bi = tf.boolean_mask(pred, tf.equal(binary_mask, 1))
+    y_bi = tf.boolean_mask(y, tf.equal(binary_mask, 1))
+    pred_bi_cond_f1 = tf.equal(tf.reduce_sum(pred_bi), 0)
+    y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
+    accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
+                       lambda: tf.constant(1.0),
+                       lambda: tf_f1score(pred=pred_bi, label=y_bi))
+    auc_pred_bi = tf.boolean_mask(tf.reshape(fuse_map[:, :, :, 1], [-1]), tf.equal(binary_mask, 1))
+    auc_score = tf.cond(tf.equal(tf.reduce_mean(y_bi), 1),
+                        lambda: tf.constant(0.0),
+                        lambda: tf_auc_score(pred=auc_pred_bi, label=y_bi))
     return cost, accuracy, auc_score
 
 
@@ -109,39 +108,39 @@ def _add_loss_summaries(total_loss):
     """
     # Compute the moving average of all individual losses and the total loss.
     loss_averages = tf.train.ExponentialMovingAverage(0.9, name='avg')
-    losses = tf.compat.v1.get_collection('loss')
+    losses = tf.get_collection('loss')
     loss_averages_op = loss_averages.apply(losses + [total_loss])
     return loss_averages_op
 
 
 def train_op_batchnorm(total_loss, global_step, initial_learning_rate, lr_decay_rate, decay_steps, epsilon_opt, var_opt,
                        MOVING_AVERAGE_DECAY):
-    update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
-    lr = tf.compat.v1.train.exponential_decay(initial_learning_rate,
-                                              global_step,
-                                              decay_steps,
-                                              lr_decay_rate,
-                                              staircase=False)
+    lr = tf.train.exponential_decay(initial_learning_rate,
+                                    global_step,
+                                    decay_steps,
+                                    lr_decay_rate,
+                                    staircase=False)
     # if staircase is True, then the division between global_step/decay_steps is a interger,
     # otherwise it's not an interger.
-    tf.compat.v1.summary.scalar('learning_rate', lr)
+    tf.summary.scalar('learning_rate', lr)
 
     variables_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY, global_step)
     # variables_averages_op = variables_averages.apply(var_opt)
     with tf.control_dependencies(update_ops):
         loss_averages_op = _add_loss_summaries(total_loss)
         with tf.control_dependencies([loss_averages_op]):
-            opt = tf.compat.v1.train.AdamOptimizer(lr, epsilon=epsilon_opt)
+            opt = tf.train.AdamOptimizer(lr, epsilon=epsilon_opt)
             grads = opt.compute_gradients(total_loss, var_list=var_opt)
 
-        for var in tf.compat.v1.trainable_variables():
-            tf.compat.v1.summary.histogram(var.op.name, var)
+        for var in tf.trainable_variables():
+            tf.summary.histogram(var.op.name, var)
 
         # Add histograms for gradients.
         for grad, var in grads:
             if grad is not None:
-                tf.compat.v1.summary.histogram(var.op.name + '/gradients', grad)
+                tf.summary.histogram(var.op.name + '/gradients', grad)
 
         apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
         with tf.control_dependencies([apply_gradient_op]):

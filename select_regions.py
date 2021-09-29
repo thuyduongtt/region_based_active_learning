@@ -5,7 +5,7 @@ This file is for selecting the most uncertain regions in each acquisition step b
 acquisition functions given the updated model
 @author: s161488
 """
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from data_utils.prepare_data import padding_training_data, prepare_train_data
 from models.inference import ResNet_V2_DMNN
 from models.acquisition_region import select_most_uncertain_patch
@@ -51,11 +51,11 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, already_selected_
 
     with tf.Graph().as_default():
         # The placeholder below is for extracting the input for the network #####
-        images_train = tf.compat.v1.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
-        instance_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
-        edges_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
-        phase_train = tf.compat.v1.placeholder(tf.bool, shape=None, name="training_state")
-        dropout_phase = tf.compat.v1.placeholder(tf.bool, shape=None, name="dropout_state")
+        images_train = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
+        instance_labels_train = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        edges_labels_train = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        phase_train = tf.placeholder(tf.bool, shape=None, name="training_state")
+        dropout_phase = tf.placeholder(tf.bool, shape=None, name="dropout_state")
         data_train, data_pool, data_val = prepare_train_data(data_path, selec_training_index[0, :],
                                                              selec_training_index[1, :])
         x_image_pl, y_label_pl, y_edge_pl = padding_training_data(data_pool[0], data_pool[1], data_pool[2],
@@ -68,11 +68,11 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, already_selected_
         edge_prob = tf.nn.softmax(tf.add_n(ed_logits))
         fb_prob = tf.nn.softmax(tf.add_n(fb_logits))
 
-        var_train = tf.compat.v1.trainable_variables()
+        var_train = tf.trainable_variables()
         variable_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY)
         variable_averages.apply(var_train)
-        variables_to_restore = variable_averages.variables_to_restore(tf.compat.v1.moving_average_variables())
-        saver = tf.compat.v1.train.Saver(variables_to_restore)
+        variables_to_restore = variable_averages.variables_to_restore(tf.moving_average_variables())
+        saver = tf.train.Saver(variables_to_restore)
 
         print(" =====================================================")
         print("Dropout Phase", Dropout_State)
@@ -81,7 +81,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, already_selected_
         print("The number of dropout times", num_sample_drop)
         print("The images which include most uncertain patches", already_selected_imindex)
 
-        with tf.compat.v1.Session() as sess:
+        with tf.Session() as sess:
             ckpt = tf.train.get_checkpoint_state(ckpt_dir)
             if ckpt and ckpt.model_checkpoint_path:
                 saver.restore(sess, ckpt.model_checkpoint_path)

@@ -4,7 +4,7 @@ Created on Wed Mar  7 16:42:15 2018
 Full image based active learning on GlaS dataset
 @author: s161488
 """
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from data_utils.prepare_data import prepare_train_data, padding_training_data, aug_train_data, generate_batch
 from models.inference import ResNet_V2_DMNN
 from optimization.loss_region_specific import Loss, train_op_batchnorm
@@ -263,17 +263,17 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
     with tf.Graph().as_default():
         #  This three placeholder is for extracting the augmented training data##
-        image_aug_placeholder = tf.compat.v1.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
-        label_aug_placeholder = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
-        edge_aug_placeholder = tf.compat.v1.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
+        label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
+        edge_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         # The placeholder below is for extracting the input for the network #####
-        images_train = tf.compat.v1.placeholder(tf.float32, [batch_size, image_w, image_h, image_c])
-        instance_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
-        edges_labels_train = tf.compat.v1.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
-        phase_train = tf.compat.v1.placeholder(tf.bool, shape=None, name="training_state")
-        dropout_phase = tf.compat.v1.placeholder(tf.bool, shape=None, name="dropout_state")
-        auxi_weight = tf.compat.v1.placeholder(tf.float32, shape=None, name="auxiliary_weight")
-        global_step = tf.compat.v1.train.get_or_create_global_step()
+        images_train = tf.placeholder(tf.float32, [batch_size, image_w, image_h, image_c])
+        instance_labels_train = tf.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
+        edges_labels_train = tf.placeholder(tf.int64, [batch_size, image_w, image_h, 1])
+        phase_train = tf.placeholder(tf.bool, shape=None, name="training_state")
+        dropout_phase = tf.placeholder(tf.bool, shape=None, name="dropout_state")
+        auxi_weight = tf.placeholder(tf.float32, shape=None, name="auxiliary_weight")
+        global_step = tf.train.get_or_create_global_step()
         #  -----------------Here is for preparing the dataset for training, pooling and validation---------#
         data_train, data_pool, data_val = prepare_train_data(training_data_path, selec_training_index[0, :],
                                                              selec_training_index[1, :])
@@ -353,7 +353,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                                                                    1], dtype=tf.float32),
                                               auxi_weight=auxi_weight, loss_name="fg")
 
-        var_train = tf.compat.v1.trainable_variables()
+        var_train = tf.trainable_variables()
         total_loss = edge_loss + fb_loss
         if flag_l2_regu is True:
             var_l2 = [v for v in var_train if (('kernel' in v.name) or ('weights' in v.name))]
@@ -364,17 +364,17 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
         train = train_op_batchnorm(total_loss=total_loss, global_step=global_step, initial_learning_rate=learning_rate,
                                    lr_decay_rate=decay_rate, decay_steps=decay_steps,
-                                   epsilon_opt=epsilon_opt, var_opt=tf.compat.v1.trainable_variables(),
+                                   epsilon_opt=epsilon_opt, var_opt=tf.trainable_variables(),
                                    MOVING_AVERAGE_DECAY=moving_average_decay)
 
         # summary_op = tf.summary.merge_all()
         if flag_pretrain is False:
             set_resnet_var = [v for v in var_train if (v.name.startswith('resnet_v2') & ('logits' not in v.name))]
-            saver_set_resnet = tf.compat.v1.train.Saver(set_resnet_var, max_to_keep=3)
-            saver_set_all = tf.compat.v1.train.Saver(tf.compat.v1.global_variables(), max_to_keep=1)
+            saver_set_resnet = tf.train.Saver(set_resnet_var, max_to_keep=3)
+            saver_set_all = tf.train.Saver(tf.global_variables(), max_to_keep=1)
 
         else:
-            saver_set_all = tf.compat.v1.train.Saver(max_to_keep=1)
+            saver_set_all = tf.train.Saver(max_to_keep=1)
 
         print("\n =====================================================")
         print("The shape of new training data", np.shape(x_image_tr)[0])
@@ -392,10 +392,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print("The checkpoing file is saved every %d steps" % save_checkpoint_period)
         print("The L2 regularization is turned on:", flag_l2_regu)
         print(" =====================================================")
-        with tf.compat.v1.Session() as sess:
+        with tf.Session() as sess:
             if flag_pretrain is False:
-                sess.run(tf.compat.v1.global_variables_initializer())
-                sess.run(tf.compat.v1.local_variables_initializer())
+                sess.run(tf.global_variables_initializer())
+                sess.run(tf.local_variables_initializer())
                 saver_set_resnet.restore(sess, resnet_ckpt)
             else:
                 ckpt = tf.train.get_checkpoint_state(ckpt_dir)
