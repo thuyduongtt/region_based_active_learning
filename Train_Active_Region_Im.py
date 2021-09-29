@@ -14,6 +14,7 @@ from optimization.loss_region_specific import Loss, train_op_batchnorm
 from sklearn.utils import shuffle
 from select_regions import selection as SPR_Region_Im
 import pickle
+import argparse
 
 
 print("--------------------------------------------------------------")
@@ -420,4 +421,10 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
                     np.save(os.path.join(model_dir, 'trainstat'), train_tot_stat)
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
 
-#
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
+    args = parser.parse_args()
+
+    run_loop_active_learning_region(args.stage)
