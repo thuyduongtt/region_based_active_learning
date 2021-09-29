@@ -7,6 +7,7 @@ validation data.
 """
 import numpy as np
 import tensorflow.compat.v1 as tf
+from tensorflow.contrib import image as contrib_image
 import cv2
 import matplotlib.pyplot as plt
 
@@ -41,20 +42,20 @@ def prepare_train_data(path, select_benign_train, select_mali_train):
     edges = data_set['edge']
     imageindex = data_set['ImageIndex']
     classindex = data_set['ClassIndex']
-    benign_index = np.where(np.array(classindex) == 1)
-    mali_index = np.where(np.array(classindex) == 2)
+    benign_index = np.where(np.array(classindex) == 1)[0]
+    mali_index = np.where(np.array(classindex) == 2)[0]
 
-    print('benign_index')
-    print(benign_index)
-    print('mali_index')
-    print(mali_index)
-
-    choose_index_tr = np.concatenate([benign_index[0][select_benign_train], mali_index[0][select_mali_train]], axis=0)
-    benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
-    mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
+    # print('benign_index')
+    # print(benign_index)  # even indices
+    # print('mali_index')
+    # print(mali_index)  # odd indices
 
     n_benign = len(benign_index)
     n_malignant = len(mali_index)
+
+    choose_index_tr = np.concatenate([benign_index[select_benign_train], mali_index[select_mali_train]], axis=0)
+    benign_index_left = np.delete(range(n_benign), select_benign_train)
+    mali_index_left = np.delete(range(n_malignant), select_mali_train)
 
     print(f'n_benign = {n_benign}, n_malignant = {n_malignant}')
 
@@ -62,10 +63,8 @@ def prepare_train_data(path, select_benign_train, select_mali_train):
     remain_benign = n_benign - n
     remain_maglinant = n_malignant - n
     choose_index_pl = np.concatenate(
-        [benign_index[0][benign_index_left[:remain_benign]], mali_index[0][mali_index_left[:remain_maglinant]]],
-        axis=0)
-    choose_index_val = np.concatenate([benign_index[0][benign_index_left[-5:]], mali_index[0][mali_index_left[-5:]]],
-                                      axis=0)
+        [benign_index[benign_index_left[:remain_benign]], mali_index[mali_index_left[:remain_maglinant]]], axis=0)
+    choose_index_val = np.concatenate([benign_index[benign_index_left[-5:]], mali_index[mali_index_left[-5:]]], axis=0)
     data_train = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_tr)
     data_pl = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_pl)
     data_val = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_val)
@@ -83,14 +82,14 @@ def prepare_pool_data(path, aug=False):
     select_benign_train = [0, 1, 2, 3, 4]
     select_mali_train = [2, 4, 5, 6, 7]
 
-    benign_index = np.where(np.array(classindex) == 1)
-    mali_index = np.where(np.array(classindex) == 2)
-
-    benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
-    mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
+    benign_index = np.where(np.array(classindex) == 1)[0]
+    mali_index = np.where(np.array(classindex) == 2)[0]
 
     n_benign = len(benign_index)
     n_malignant = len(mali_index)
+
+    benign_index_left = np.delete(range(n_benign), select_benign_train)
+    mali_index_left = np.delete(range(n_malignant), select_mali_train)
 
     print(f'n_benign = {n_benign}, n_malignant = {n_malignant}')
 
@@ -98,8 +97,7 @@ def prepare_pool_data(path, aug=False):
     remain_benign = n_benign - n
     remain_maglinant = n_malignant - n
     choose_index_pl = np.concatenate(
-        [benign_index[0][benign_index_left[:remain_benign]], mali_index[0][mali_index_left[:remain_maglinant]]],
-        axis=0)
+        [benign_index[benign_index_left[:remain_benign]], mali_index[mali_index_left[:remain_maglinant]]], axis=0)
     data_pl = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_pl)
     if aug is True:
         targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
@@ -199,7 +197,7 @@ def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
                                  lambda: bigmatrix_crop)
         # instead of judging by label, should do it by the binary mask!
         k = tf.random_uniform(shape=[batch_size], minval=0, maxval=6.5, dtype=tf.float32)
-        bigmatrix_rot = tf.contrib.image.rotate(bigmatrix_crop, angles=k)
+        bigmatrix_rot = contrib_image.rotate(bigmatrix_crop, angles=k)
         image_aug = tf.cast(bigmatrix_rot[:, :, :, 0:3], tf.float32)
         label_aug = bigmatrix_rot[:, :, :, 3]
         edge_aug = bigmatrix_rot[:, :, :, 4]
@@ -239,4 +237,3 @@ def collect_test_data(resize=True):
     label_tot = np.concatenate([label_tot[0], label_tot[1]], axis=0)
     print("The shape of the test images", np.shape(image_tot))
     return image_tot, label_tot
-

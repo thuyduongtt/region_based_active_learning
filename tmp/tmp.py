@@ -1,3 +1,5 @@
+import tensorflow.compat.v1 as tf
+
 if __name__ == '__main__':
-    arr = [1] * 10
-    print(arr)
+    var_train = tf.trainable_variables()
+    print(var_train)

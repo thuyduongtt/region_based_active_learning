@@ -7,7 +7,7 @@ Created on Fri Mar  2 11:56:26 2018
 ############################################################
 #  Loss Functions
 ############################################################
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from sklearn.metrics import f1_score, roc_curve, auc
 
