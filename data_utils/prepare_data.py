@@ -16,14 +16,12 @@ IM_PAD_WIDTH = 256
 IM_PAD_HEIGHT = 256
 
 
-def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37, n_malignant=48):
+def prepare_train_data(path, select_benign_train, select_mali_train):
     """
     Args:
         path: the path where the data is saved
         select_benign_train: a list of selected benign images
         select_mali_train: a list of selected malignant images
-        n_benign: total num of benign images
-        n_malignant: total num of malignant images
     Ops:
         First, the images, labels. edges, im_index, cls_index can be extracted from the np.load
         images: shape [85, im_h, im_w, 3]
@@ -55,6 +53,11 @@ def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37
     benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
     mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
 
+    n_benign = len(benign_index)
+    n_malignant = len(mali_index)
+
+    print(f'n_benign = {n_benign}, n_malignant = {n_malignant}')
+
     n = 10
     remain_benign = n_benign - n
     remain_maglinant = n_malignant - n
@@ -70,7 +73,7 @@ def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37
     return data_train, data_pl, data_val
 
 
-def prepare_pool_data(path, aug=False, n_benign=37, n_malignant=48):
+def prepare_pool_data(path, aug=False):
     data_set = np.load(path, allow_pickle=True).item()
     images = data_set['image']
     labels = data_set['label']
@@ -85,6 +88,11 @@ def prepare_pool_data(path, aug=False, n_benign=37, n_malignant=48):
 
     benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
     mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
+
+    n_benign = len(benign_index)
+    n_malignant = len(mali_index)
+
+    print(f'n_benign = {n_benign}, n_malignant = {n_malignant}')
 
     n = 10
     remain_benign = n_benign - n
@@ -127,7 +135,7 @@ def generate_batch(x_image_tr, y_label_tr, y_edge_tr, y_binary_mask_tr, batch_in
     return im_batch[0], im_batch[1], im_batch[2], im_batch[3], batch_index
 
 
-def padding_training_data(x_image, y_label, y_edge, target_height, target_width):
+def padding_training_data(x_image, y_label, y_edge, target_height, target_width, n_channels=3):
     """Each image has different size, so I need to pad it with zeros to make sure each image has the same size.
        Then I can perform random crop, rotation and other augmentation on per batch instead of per image
     """
@@ -138,7 +146,7 @@ def padding_training_data(x_image, y_label, y_edge, target_height, target_width)
         x_im_pad.append(image_pad)
         y_la_pad.append(label_pad)
         y_ed_pad.append(edge_pad)
-    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, 3])
+    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, n_channels])
     y_la_pad = np.reshape(y_la_pad, [num_image, target_height, target_width, 1])
     y_ed_pad = np.reshape(y_ed_pad, [num_image, target_height, target_width, 1])
     return x_im_pad, y_la_pad, y_ed_pad

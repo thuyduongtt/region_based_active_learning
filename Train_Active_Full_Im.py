@@ -287,10 +287,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     [x_image_pl, y_label_pl, y_edge_pl],
                     [x_image_val, y_label_val, y_edge_val]]
 
-        for iterr, single_im_group in enumerate(im_group):
-            single_group_new = padding_training_data(single_im_group[0], single_im_group[1], single_im_group[2],
-                                                     targ_height_npy, targ_width_npy)
-            im_group[iterr] = single_group_new
+        if targ_height_npy > image_h or targ_width_npy > image_w:
+            for iterr, single_im_group in enumerate(im_group):
+                single_group_new = padding_training_data(single_im_group[0], single_im_group[1], single_im_group[2],
+                                                         targ_height_npy, targ_width_npy, image_c)
+                im_group[iterr] = single_group_new
         x_tr_group = [im_group[0][0], im_group[0][1], im_group[0][2], y_imindex_tr, y_clsindex_tr]
         x_pl_group = [im_group[1][0], im_group[1][1], im_group[1][2], y_imindex_pl, y_clsindex_pl]
         x_image_val, y_label_val, y_edge_val = im_group[2][0], im_group[2][1], im_group[2][2]
