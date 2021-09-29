@@ -1,5 +1,8 @@
-import tensorflow.compat.v1 as tf
+import numpy as np
+import tensorflow as tf
 
 if __name__ == '__main__':
-    var_train = tf.trainable_variables()
-    print(var_train)
+    arr = np.arange(10).reshape(2, 5)
+    print(arr)
+    s = tf.math.reduce_sum(arr)
+    print(s)

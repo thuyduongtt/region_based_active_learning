@@ -7,6 +7,7 @@ validation data.
 """
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib import image as contrib_image
 import cv2
 import matplotlib.pyplot as plt
 
@@ -152,7 +153,7 @@ def generate_batch(x_image_tr, y_label_tr, y_edge_tr, y_binary_mask_tr, batch_in
     return im_batch[0], im_batch[1], im_batch[2], im_batch[3], batch_index
 
 
-def padding_training_data(x_image, y_label, y_edge, target_height, target_width):
+def padding_training_data(x_image, y_label, y_edge, target_height, target_width, n_channels=3):
     """Each image has different size, so I need to pad it with zeros to make sure each image has the same size.
        Then I can perform random crop, rotation and other augmentation on per batch instead of per image
     """
@@ -163,7 +164,7 @@ def padding_training_data(x_image, y_label, y_edge, target_height, target_width)
         x_im_pad.append(image_pad)
         y_la_pad.append(label_pad)
         y_ed_pad.append(edge_pad)
-    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, 3])
+    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, n_channels])
     y_la_pad = np.reshape(y_la_pad, [num_image, target_height, target_width, 1])
     y_ed_pad = np.reshape(y_ed_pad, [num_image, target_height, target_width, 1])
     return x_im_pad, y_la_pad, y_ed_pad
@@ -216,7 +217,7 @@ def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
                                  lambda: bigmatrix_crop)
         # instead of judging by label, should do it by the binary mask!
         k = tf.random_uniform(shape=[batch_size], minval=0, maxval=6.5, dtype=tf.float32)
-        bigmatrix_rot = tf.contrib.image.rotate(bigmatrix_crop, angles=k)
+        bigmatrix_rot = contrib_image.rotate(bigmatrix_crop, angles=k)
         image_aug = tf.cast(bigmatrix_rot[:, :, :, 0:3], tf.float32)
         label_aug = bigmatrix_rot[:, :, :, 3]
         edge_aug = bigmatrix_rot[:, :, :, 4]

@@ -26,6 +26,19 @@ print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
 
 
+# IM_WIDTH = 480
+# IM_HEIGHT = 480
+# IM_PAD_WIDTH = 784
+# IM_PAD_HEIGHT = 528
+# IM_CHANNEL = 3
+
+IM_WIDTH = 256
+IM_HEIGHT = 256
+IM_PAD_WIDTH = 256
+IM_PAD_HEIGHT = 256
+IM_CHANNEL = 6
+
+
 def running_train_use_all_data(version_space):
     """Train an model with all the training data (85)
     This is used to benchmark the full image acquisition and region acquisition strategy
@@ -235,10 +248,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
     # batch_size = 5
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    image_w, image_h, image_c = [256, 256, 6]
+    image_w, image_h, image_c = [IM_WIDTH, IM_HEIGHT, IM_CHANNEL]
     image_shape = np.array([image_w, image_h, image_c])
-    targ_height_npy = 256  # this is for padding images
-    targ_width_npy = 256  # this is for padding images
+    targ_height_npy = IM_HEIGHT  # this is for padding images
+    targ_width_npy = IM_WIDTH  # this is for padding images
     flag_decay = True
     if (acq_method == "F") and (acq_index_old is None):
         learning_rate = 0.0009

@@ -12,7 +12,7 @@ This script is utilized for creating the data
 import os
 
 import numpy as np
-import scipy
+from PIL import Image
 from scipy import ndimage
 from skimage.morphology import dilation, disk
 
@@ -57,9 +57,9 @@ def read_gland_training_data(im_list, la_list):
     index = 0
 
     for im_filename, la_filename in zip(im_list, la_list):
-        im = scipy.misc.imread(im_filename)
+        im = np.array(Image.open(im_filename))
         im_index = int(im_filename.strip().split("train_")[1].strip().split(".bmp")[0])
-        la = scipy.misc.imread(la_filename)
+        la = np.array(Image.open(la_filename))
         images_index.append(im_index)
         images.append(im)
         labels.append(la)
@@ -79,9 +79,9 @@ def read_gland_test_data(im_list, la_list, name):
     index = 0
 
     for im_filename, la_filename in zip(im_list, la_list):
-        im = scipy.misc.imread(im_filename)
+        im = np.array(Image.open(im_filename))
         im_index = int(im_filename.strip().split(name)[1].strip().split(".bmp")[0])
-        la = scipy.misc.imread(la_filename)
+        la = np.array(Image.open(la_filename))
         images_index.append(im_index)
         images.append(im)
         labels.append(la)
