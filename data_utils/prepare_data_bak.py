@@ -6,24 +6,19 @@ validation data.
 @author: s161488
 """
 import numpy as np
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
 
 path_mom = "DATA/"  # NOTE, NEED TO BE MANUALLY DEFINED
 
-IM_PAD_WIDTH = 256
-IM_PAD_HEIGHT = 256
 
-
-def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37, n_malignant=48):
+def prepare_train_data(path, select_benign_train, select_mali_train):
     """
     Args:
         path: the path where the data is saved
         select_benign_train: a list of selected benign images
         select_mali_train: a list of selected malignant images
-        n_benign: total num of benign images
-        n_malignant: total num of malignant images
     Ops:
         First, the images, labels. edges, im_index, cls_index can be extracted from the np.load
         images: shape [85, im_h, im_w, 3]
@@ -46,21 +41,13 @@ def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37
     benign_index = np.where(np.array(classindex) == 1)
     mali_index = np.where(np.array(classindex) == 2)
 
-    print('benign_index')
-    print(benign_index)
-    print('mali_index')
-    print(mali_index)
-
     choose_index_tr = np.concatenate([benign_index[0][select_benign_train], mali_index[0][select_mali_train]], axis=0)
     benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
     mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
 
-    n = 10
-    remain_benign = n_benign - n
-    remain_maglinant = n_malignant - n
-    choose_index_pl = np.concatenate(
-        [benign_index[0][benign_index_left[:remain_benign]], mali_index[0][mali_index_left[:remain_maglinant]]],
-        axis=0)
+    # 37 benign and 48 malignant
+    choose_index_pl = np.concatenate([benign_index[0][benign_index_left[:27]], mali_index[0][mali_index_left[:38]]],
+                                     axis=0)
     choose_index_val = np.concatenate([benign_index[0][benign_index_left[-5:]], mali_index[0][mali_index_left[-5:]]],
                                       axis=0)
     data_train = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_tr)
@@ -70,7 +57,7 @@ def prepare_train_data(path, select_benign_train, select_mali_train, n_benign=37
     return data_train, data_pl, data_val
 
 
-def prepare_pool_data(path, aug=False, n_benign=37, n_malignant=48):
+def prepare_pool_data(path, aug=False):
     data_set = np.load(path, allow_pickle=True).item()
     images = data_set['image']
     labels = data_set['label']
@@ -86,22 +73,60 @@ def prepare_pool_data(path, aug=False, n_benign=37, n_malignant=48):
     benign_index_left = np.delete(range(np.shape(benign_index[0])[0]), select_benign_train)
     mali_index_left = np.delete(range(np.shape(mali_index[0])[0]), select_mali_train)
 
-    n = 10
-    remain_benign = n_benign - n
-    remain_maglinant = n_malignant - n
-    choose_index_pl = np.concatenate(
-        [benign_index[0][benign_index_left[:remain_benign]], mali_index[0][mali_index_left[:remain_maglinant]]],
-        axis=0)
+    # 37 benign and 48 malignant
+    choose_index_pl = np.concatenate([benign_index[0][benign_index_left[:27]], mali_index[0][mali_index_left[:38]]],
+                                     axis=0)
     data_pl = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_pl)
     if aug is True:
-        targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
-        targ_width_npy = IM_PAD_WIDTH  # this is for padding images
+        targ_height_npy = 528  # this is for padding images
+        targ_width_npy = 784  # this is for padding images
         x_image_val, y_label_val, y_edge_val = padding_training_data(data_pl[0], data_pl[1],
                                                                      data_pl[2], targ_height_npy,
                                                                      targ_width_npy)
         data_pl = [x_image_val, y_label_val, y_edge_val]
 
     return data_pl
+
+
+def prepare_skin_data(path, num_tr, combine=True):
+    """
+    choose_index_tr: worst 16+best 16
+    or middle 32
+    this num_tr should be 1/2*total_number_of_training_images_at_inital_step
+    I have tried it for 32, then I am going to check 16
+
+    """
+    val_num_im = 96
+    tot_numeric_index = np.arange(900)
+    if combine is True:
+        tr_select_numeric_index = np.concatenate([tot_numeric_index[:num_tr], tot_numeric_index[-num_tr:]], axis=0)
+    else:
+        tr_select_numeric_index = tot_numeric_index[340:(340 + num_tr * 2)]
+    val_select_numeric_index = tot_numeric_index[500:(500 + val_num_im)]
+    pool_numeric_index = np.delete(tot_numeric_index,
+                                   np.concatenate([tr_select_numeric_index, val_select_numeric_index], axis=0))
+    im_seg_score = np.load('/home/s161488/Exp_Stat/Skin_Lesion/init_segment_score.npy')
+    sorted_index = np.argsort(im_seg_score)
+
+    data_set = np.load(path, encoding='latin1').item()
+    images = np.array(data_set['image'])
+    labels = np.array(data_set['label'])
+    edges = np.array(data_set['edge'])
+
+    labels = np.expand_dims(labels, axis=-1)
+    edges = np.expand_dims(edges, axis=-1)
+    tr_select_image_index = np.sort(sorted_index[tr_select_numeric_index])
+    val_select_image_index = np.sort(sorted_index[val_select_numeric_index])
+    pl_select_image_index = np.sort(sorted_index[pool_numeric_index])
+
+    imindex = np.arange(np.shape(images)[0])
+    clsindex = np.ones(np.shape(images)[0])
+
+    data_tr = extract_diff_data(images, labels, edges, imindex, clsindex, tr_select_image_index)
+    data_pl = extract_diff_data(images, labels, edges, imindex, clsindex, pl_select_image_index)
+    data_val = extract_diff_data(images, labels, edges, imindex, clsindex, val_select_image_index)
+
+    return data_tr[:3], data_pl[:3], data_val[:3]
 
 
 def prepare_test_data(path):
@@ -206,10 +231,10 @@ def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
 
 
 def collect_test_data(resize=True):
-    test_a_path = path_mom + "/Data/QB_test_benign.npy"
-    test_b_path = path_mom + "/Data/QB_test_mali.npy"
+    test_a_path = path_mom + "/Data/glanddata_testa.npy"
+    test_b_path = path_mom + "/Data/glanddata_testb.npy"
     image_tot, label_tot = [], []
-    target_height, target_width = IM_PAD_HEIGHT, IM_PAD_WIDTH
+    target_height, target_width = 528, 784
     for single_path in [test_a_path, test_b_path]:
         data_set = np.load(single_path, allow_pickle=True).item()
         images = data_set['image']
@@ -220,7 +245,7 @@ def collect_test_data(resize=True):
         if resize is True:
             for single_im, single_label in zip(images, y_label_pl):
                 for _im_, _path_ in zip([single_im, single_label], [x_image_val, y_label_val]):
-                    _im_ = cv2.resize(_im_, dsize=(IM_PAD_WIDTH, IM_PAD_HEIGHT), interpolation=cv2.INTER_CUBIC)
+                    _im_ = cv2.resize(_im_, dsize=(784, 528), interpolation=cv2.INTER_CUBIC)
                     _path_.append(_im_)
         else:
             x_image_val, y_label_val, y_edge_val = padding_training_data(images, y_label_pl, y_edge_pl, target_height,
@@ -232,3 +257,16 @@ def collect_test_data(resize=True):
     print("The shape of the test images", np.shape(image_tot))
     return image_tot, label_tot
 
+
+def save_im():
+    im_tot, la_tot = collect_test_data()
+    rand_value = np.random.choice(np.arange(len(im_tot)), 3, replace=False)
+    for i in rand_value:
+        fig = plt.figure(figsize=(10, 4))
+        im_ = im_tot[i]
+        la_ = la_tot[i]
+        la_judge = (la_ != 0)
+        for iterr, single_im in enumerate([im_, la_, la_judge]):
+            ax = fig.add_subplot(1, 3, iterr + 1)
+            ax.imshow(single_im)
+        plt.savefig('/home/blia/im_%d.pdf' % i, pad_inches=0, box_inches='tight')

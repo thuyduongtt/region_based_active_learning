@@ -8,9 +8,6 @@ This file contains all the function for preparing data in the region-specific ac
 import numpy as np
 from data_utils.prepare_data import prepare_train_data, padding_training_data
 
-IM_PAD_WIDTH = 256
-IM_PAD_HEIGHT = 256
-
 
 def give_init_train_and_val_data(mom_data_path):
     """This function is used to prepare the most initial data
@@ -20,9 +17,9 @@ def give_init_train_and_val_data(mom_data_path):
     The validation data will always be same for all the acquisition step
     """
     print("-----------------------Now I am reading the initial training data, which should include 10 images")
-    #    mom_data_path = "/home/s161488/Exp_Stat/Data/glanddata.npy"
-    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
-    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
+#    mom_data_path = "/home/s161488/Exp_Stat/Data/glanddata.npy"
+    targ_height_npy = 528  # this is for padding images
+    targ_width_npy = 784  # this is for padding images
     selec_training_index = np.zeros([2, 5])
     selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
     selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
@@ -117,7 +114,7 @@ def prepare_the_new_uncertain_input(most_uncertain_before, most_uncertain_after)
                     common_stat_group[stat_ind].append(_stat_aggre)
                 elif stat_ind == 3:
                     _stat_update = ((most_uncertain_before[stat_ind][old_ind] +
-                                     most_uncertain_after[stat_ind][new_ind]) != 0).astype('int64')
+                                    most_uncertain_after[stat_ind][new_ind]) != 0).astype('int64')
                     common_stat_group[stat_ind].append(_stat_update)
                 elif stat_ind == 4:
                     common_stat_group[stat_ind].append(single_ind)
@@ -146,3 +143,4 @@ def prepare_the_new_uncertain_input(most_uncertain_before, most_uncertain_after)
     print("-------shape of the updated data------")
     print([np.shape(v) for v in total_update_group])
     return x_update, y_update, y_ed_update, y_bi_update, imind_update
+

@@ -12,13 +12,13 @@ from select_images import selection
 from sklearn.utils import shuffle
 import numpy as np
 import os
-
+import argparse
 
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
 training_data_path = "DATA/Data/QB.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
-test_data_path = "DATA/Data/glanddata_testb.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+test_data_path = "DATA/Data/QB_test_benign.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 resnet_dir = "pretrain_model/"
 exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
 print("--------------------------------------------------------------")
@@ -490,3 +490,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     print("Acq Index Update", acq_index_update)
                     np.save(os.path.join(model_dir, 'trainstat'), train_tot_stat)
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
+    args = parser.parse_args()
+
+    running_loop_active_learning_full_image(args.stage)
