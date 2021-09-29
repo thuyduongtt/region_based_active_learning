@@ -27,12 +27,6 @@ from six.moves import range
 from sklearn.metrics import confusion_matrix as sklearn_cm
 
 
-# import tensorflow as tf
-
-
-# import tensorflow.compat.v2 as tf
-
-
 def bin_predictions_and_accuracies(probabilities, ground_truth, bins=10):
     """A helper function which histograms a vector of probabilities into bins.
   
