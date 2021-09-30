@@ -13,6 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
+
 # import tensorflow.contrib.slim as slim
 
 print("--------------------------------------------------------------")
@@ -357,14 +358,12 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,
                                               dropout_state=dropout_phase, Num_Classes=2)
 
-        edge_loss, ed_accu, ed_auc_score = Loss(logits=ed_logits, labels=edges_labels_train,
-                                                binary_mask=tf.ones([batch_size, image_h, image_w,
-                                                                     1], dtype=tf.float32),
-                                                auxi_weight=auxi_weight, loss_name="ed")
-        fb_loss, fb_accu, fb_auc_score = Loss(logits=fb_logits, labels=instance_labels_train,
-                                              binary_mask=tf.ones([batch_size, image_h, image_w,
-                                                                   1], dtype=tf.float32),
-                                              auxi_weight=auxi_weight, loss_name="fg")
+        edge_loss, ed_accu, ed_auc_score, _ = Loss(logits=ed_logits, labels=edges_labels_train,
+                                                   binary_mask=tf.ones([batch_size, image_h, image_w, 1], dtype=tf.float32),
+                                                   auxi_weight=auxi_weight, loss_name="ed")
+        fb_loss, fb_accu, fb_auc_score, metrics = Loss(logits=fb_logits, labels=instance_labels_train,
+                                                       binary_mask=tf.ones([batch_size, image_h, image_w, 1], dtype=tf.float32),
+                                                       auxi_weight=auxi_weight, loss_name="fg")
 
         var_train = tf.trainable_variables()
 
@@ -393,7 +392,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         else:
             saver_set_all = tf.train.Saver(max_to_keep=1)
 
-        print("\n =====================================================")
+        print("\n=====================================================")
         print("The shape of new training data", np.shape(x_image_tr)[0])
         print("The final validation data size %d" % np.shape(x_image_val)[0])
         print("There are %d iteratioins in each epoch" % iteration)
@@ -408,7 +407,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print("Use pretrained model:", flag_pretrain)
         print("The checkpoing file is saved every %d steps" % save_checkpoint_period)
         print("The L2 regularization is turned on:", flag_l2_regu)
-        print(" =====================================================")
+        print("=====================================================")
         with tf.Session() as sess:
             if flag_pretrain is False:
                 sess.run(tf.global_variables_initializer())
@@ -468,8 +467,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
                 if single_epoch % val_step_size == 0:
                     val_iteration = np.shape(x_image_val)[0] // batch_size
-                    print("start validating .......with %d images and %d iterations" % (np.shape(x_image_val)[0],
-                                                                                        val_iteration))
+                    print("start validating .......with %d images and %d iterations" % (np.shape(x_image_val)[0], val_iteration))
 
                     val_batch_index = 0
                     val_stat_per_epoch = np.zeros([val_iteration, 4])
@@ -491,15 +489,16 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                                            auxi_weight: 0,
                                            phase_train: False,
                                            dropout_phase: False}
-                        _fbloss_val, _fb_f1_val, _fb_auc_val, _edloss_val = sess.run(fetches=fetches_valid,
-                                                                                     feed_dict=feed_dict_valid)
+                        _fbloss_val, _fb_f1_val, _fb_auc_val, _edloss_val = sess.run(fetches=fetches_valid, feed_dict=feed_dict_valid)
                         val_stat_per_epoch[single_batch_val, 0] = _fbloss_val
                         val_stat_per_epoch[single_batch_val, 1] = _fb_f1_val
                         val_stat_per_epoch[single_batch_val, 2] = _fb_auc_val
                         val_stat_per_epoch[single_batch_val, 3] = _edloss_val
 
                     val_tot_stat[single_epoch // val_step_size, :] = np.mean(val_stat_per_epoch, axis=0)
-                    print("validation", single_epoch, val_tot_stat[single_epoch // val_step_size, :])
+                    print("validation\n", single_epoch, val_tot_stat[single_epoch // val_step_size, :])
+                    print('==== METRICS:')
+                    print_metrics(metrics)
 
                 if single_epoch % save_checkpoint_period == 0 or single_epoch == (epoch_size - 1):
                     saver_set_all.save(sess, checkpoint_path, global_step=single_epoch)
@@ -507,6 +506,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     print("Acq Index Update", acq_index_update)
                     np.save(os.path.join(model_dir, 'trainstat'), train_tot_stat)
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
+
+
+def print_metrics(metrics):
+    for k in metrics:
+        print(k, '\t', metrics[k])
 
 
 if __name__ == '__main__':

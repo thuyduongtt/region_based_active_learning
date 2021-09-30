@@ -42,7 +42,8 @@ INFO:tensorflow:Restoring parameters from pretrain_model/resnet_v2_50.ckpt
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [ 9.81674894  0.59964099  0.49662866 12.98483117]
 start validating .......with 10 images and 2 iterations
-validation 0 [13.8086133   0.60239446  0.51134279 31.84655094]
+validation
+0 [13.8086133   0.60239446  0.51134279 31.84655094]
 1 [8.28567473 0.58587249 0.49506902 9.0265344 ]
 2 [7.03961706 0.5895474  0.49775251 6.96777042]
 3 [6.3607947  0.5756405  0.50122171 5.85312319]
@@ -54,7 +55,8 @@ validation 0 [13.8086133   0.60239446  0.51134279 31.84655094]
 9 [3.29771447 0.40651131 0.49442132 2.8097206 ]
 10 [3.13796298 0.32310599 0.49912065 2.64806064]
 start validating .......with 10 images and 2 iterations
-validation 10 [1.09942418 0.30064878 0.50363299 1.76503003]
+validation
+10 [1.09942418 0.30064878 0.50363299 1.76503003]
 11 [3.08146032 0.28340171 0.49854187 2.5165592 ]
 12 [2.99420389 0.2565605  0.49905247 2.45653518]
 13 [2.9527661  0.2382359  0.49995063 2.3910137 ]
@@ -112,7 +114,8 @@ restore parameter from  Exp_Stat/Method_D_Stage_3_Version_0/FE_step_0_version_0/
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [2.83113432 0.14748648 0.50178641 2.10327538]
 start validating .......with 10 images and 2 iterations
-validation 0 [0.76214883 0.16150426 0.50096829 1.11846459]
+validation
+0 [0.76214883 0.16150426 0.50096829 1.11846459]
 1 [2.82834236 0.13898448 0.50058927 2.08324675]
 2 [2.82033292 0.13481345 0.50219164 2.06015189]
 3 [2.81819709 0.12627912 0.50144893 2.04625026]
@@ -1709,7 +1712,8 @@ INFO:tensorflow:Restoring parameters from pretrain_model/resnet_v2_50.ckpt
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [ 4.03143692  0.3115192   0.50028027 15.07729467]
 start validating .......with 10 images and 2 iterations
-validation 0 [ 4.28655624  0.40412913  0.50942928 27.06539249]
+validation
+0 [ 4.28655624  0.40412913  0.50942928 27.06539249]
 1 [ 3.74022412  0.33334722  0.50132042 10.42395941]
 2 [3.44876965 0.33821609 0.50102253 7.76496363]
 3 [3.2635839  0.34012281 0.4997295  6.28632164]
@@ -1776,7 +1780,8 @@ restore parameter from  Exp_Stat/Method_D_Stage_3_Version_0/FE_step_0_version_0/
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [2.77534771 0.13517071 0.50547703 2.01805528]
 start validating .......with 10 images and 2 iterations
-validation 0 [0.78289938 0.32001875 0.50835791 1.20574015]
+validation
+0 [0.78289938 0.32001875 0.50835791 1.20574015]
 1 [2.74712793 0.13755394 0.50842855 1.94291695]
 2 [2.76645851 0.12374113 0.50618716 1.97359498]
 3 [2.75585691 0.11541922 0.5058473  1.92508642]
@@ -3373,7 +3378,8 @@ INFO:tensorflow:Restoring parameters from pretrain_model/resnet_v2_50.ckpt
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [3.99209603 0.40816073 0.49535527 3.86197813]
 start validating .......with 10 images and 2 iterations
-validation 0 [12.52120924  0.41925649  0.51198113  5.54947829]
+validation
+0 [12.52120924  0.41925649  0.51198113  5.54947829]
 1 [3.64489396 0.46135774 0.48998531 3.65969515]
 2 [3.3706998  0.47826839 0.48407517 3.42899696]
 3 [3.20855053 0.48667922 0.47411479 3.10624973]
@@ -3440,7 +3446,8 @@ restore parameter from  Exp_Stat/Method_D_Stage_3_Version_0/FE_step_0_version_0/
 Epoch, foreground-background loss,  foreground-background accu, contour loss, contour accuracy, total loss
 0 [2.75777618 0.53354439 0.46048125 1.95887033]
 start validating .......with 10 images and 2 iterations
-validation 0 [0.97212347 0.45827501 0.49784377 0.71760738]
+validation
+0 [0.97212347 0.45827501 0.49784377 0.71760738]
 1 [2.74249148 0.53132999 0.45643534 1.91231044]
 2 [2.72568083 0.52705437 0.45135596 1.89138925]
 3 [2.73083552 0.53261497 0.45388192 1.8951118 ]

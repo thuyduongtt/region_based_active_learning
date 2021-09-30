@@ -9,23 +9,43 @@ Created on Fri Mar  2 11:56:26 2018
 ############################################################
 import tensorflow.compat.v1 as tf
 import numpy as np
-from sklearn.metrics import f1_score, roc_curve, auc
+from sklearn.metrics import f1_score, roc_curve, auc, accuracy_score, precision_score, recall_score, jaccard_score
 
 
-def calc_f1_score(pred, label):
+def calc_score(pred, label, func):
     """
     pred: [batch_size, im_h, im_w, 1]
     label: [batch_size, im_h, im_w, 1]
     """
     pred = np.reshape(pred, [-1])
     label = np.reshape(label, [-1])
-    f1score = f1_score(y_true=label, y_pred=pred)
+    score = func(y_true=label, y_pred=pred)
 
-    return f1score.astype('float32')
+    return score.astype('float32')
 
 
-def tf_f1score(pred, label):
-    f1score_tensor = tf.py_func(calc_f1_score, [pred, label], tf.float32)
+def tf_f1_score(pred, label):
+    f1score_tensor = tf.py_func(calc_score, [pred, label, f1_score], tf.float32)
+    return f1score_tensor
+
+
+def tf_accuracy_score(pred, label):
+    f1score_tensor = tf.py_func(calc_score, [pred, label, accuracy_score], tf.float32)
+    return f1score_tensor
+
+
+def tf_precision_score(pred, label):
+    f1score_tensor = tf.py_func(calc_score, [pred, label, precision_score], tf.float32)
+    return f1score_tensor
+
+
+def tf_recall_score(pred, label):
+    f1score_tensor = tf.py_func(calc_score, [pred, label, recall_score], tf.float32)
+    return f1score_tensor
+
+
+def tf_jaccard_score(pred, label):
+    f1score_tensor = tf.py_func(calc_score, [pred, label, jaccard_score], tf.float32)
     return f1score_tensor
 
 
@@ -82,19 +102,48 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     fuse_cost = tf.reduce_mean(tf.boolean_mask(fuse_cost, tf.equal(binary_mask, 1)), name=loss_name + 'fuse_cost')
     tf.add_to_collection('loss', fuse_cost)
     cost = auxi_weight * cost + fuse_cost
+
     pred = tf.reshape(tf.argmax(fuse_map, axis=-1, output_type=tf.int32), [-1])
+
+    # binarize
     pred_bi = tf.boolean_mask(pred, tf.equal(binary_mask, 1))
     y_bi = tf.boolean_mask(y, tf.equal(binary_mask, 1))
+
     pred_bi_cond_f1 = tf.equal(tf.reduce_sum(pred_bi), 0)
     y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
+
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                        lambda: tf.constant(1.0),
-                       lambda: tf_f1score(pred=pred_bi, label=y_bi))
+                       lambda: tf_f1_score(pred=pred_bi, label=y_bi))
+
     auc_pred_bi = tf.boolean_mask(tf.reshape(fuse_map[:, :, :, 1], [-1]), tf.equal(binary_mask, 1))
     auc_score = tf.cond(tf.equal(tf.reduce_mean(y_bi), 1),
                         lambda: tf.constant(0.0),
                         lambda: tf_auc_score(pred=auc_pred_bi, label=y_bi))
-    return cost, accuracy, auc_score
+
+    # other metrics: accuracy_score, precision_score, recall_score, jaccard_score
+    accuracy_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
+                                 lambda: tf.constant(1.0),
+                                 lambda: tf_accuracy_score(pred=pred_bi, label=y_bi))
+    precision_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
+                                  lambda: tf.constant(1.0),
+                                  lambda: tf_precision_score(pred=pred_bi, label=y_bi))
+    recall_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
+                               lambda: tf.constant(1.0),
+                               lambda: tf_recall_score(pred=pred_bi, label=y_bi))
+    jaccard_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
+                                lambda: tf.constant(1.0),
+                                lambda: tf_jaccard_score(pred=pred_bi, label=y_bi))
+
+    metrics = {
+        'f1_score': accuracy,
+        'accuracy_score': accuracy_score_val,
+        'precision_score': precision_score_val,
+        'recall_score': recall_score_val,
+        'jaccard_score': jaccard_score_val
+    }
+
+    return cost, accuracy, auc_score, metrics
 
 
 def _add_loss_summaries(total_loss):
