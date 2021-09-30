@@ -13,6 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
+import tensorflow.contrib.slim as slim
 
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
@@ -367,6 +368,9 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                                               auxi_weight=auxi_weight, loss_name="fg")
 
         var_train = tf.trainable_variables()
+
+        slim.model_analyzer.analyze_vars(var_train, print_info=True)
+
         total_loss = edge_loss + fb_loss
         if flag_l2_regu is True:
             var_l2 = [v for v in var_train if (('kernel' in v.name) or ('weights' in v.name))]

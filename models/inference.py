@@ -15,6 +15,9 @@ import tensorflow.contrib.slim as slim
 def ResNet_V2_DMNN(images, training_state, dropout_state, Num_Classes):
     arch_name = "resnet_v2_50"
     images = tf.image.random_brightness(images, max_delta=10.0)
+
+    # print(f'images.shape: {images.shape}')  # (5, 256, 256, 6)
+
     with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         _, end_points = resnet_v2.resnet_v2_50(images, num_classes=Num_Classes, dropout_phase=dropout_state,
                                                is_training=training_state, global_pool=False, output_stride=16,
