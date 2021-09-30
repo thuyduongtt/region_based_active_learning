@@ -18,7 +18,8 @@ def ResNet_V2_DMNN(images, training_state, dropout_state, Num_Classes):
 
     # print(f'images.shape: {images.shape}')  # (5, 256, 256, 6)
 
-    input_layer = tf.layers.conv2d(images, (3, 3, 6, 3), stride=1, padding='same')
+    # add a new layer to convert the number of channels
+    input_layer = tf.layers.conv2d(images, filters=3, kernel_size=7, strides=1, padding='same')
 
     with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         _, end_points = resnet_v2.resnet_v2_50(input_layer, num_classes=Num_Classes, dropout_phase=dropout_state,

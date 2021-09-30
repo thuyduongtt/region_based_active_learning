@@ -1,9 +1,7 @@
 ---------
 Variables: name (type shape) [size]
 ---------
-conv2d/kernel:0 (float32_ref 7x7x6x3) [882, bytes: 3528]
-conv2d/bias:0 (float32_ref 3) [3, bytes: 12]
-resnet_v2_50/conv1/weights:0 (float32_ref 7x7x3x64) [9408, bytes: 37632]
+resnet_v2_50/conv1/weights:0 (float32_ref 7x7x6x64) [18816, bytes: 75264]
 resnet_v2_50/conv1/biases:0 (float32_ref 64) [64, bytes: 256]
 resnet_v2_50/block1/unit_1/bottleneck_v2/preact/gamma:0 (float32_ref 64) [64, bytes: 256]
 resnet_v2_50/block1/unit_1/bottleneck_v2/preact/beta:0 (float32_ref 64) [64, bytes: 256]
@@ -201,5 +199,5 @@ deconv_layer_u3_edge/deconv_layer_u3_edge/kernel:0 (float32_ref 24x24x2x512) [58
 deconv_layer_u3_edge/deconv_layer_u3_edge/bias:0 (float32_ref 2) [2, bytes: 8]
 aux_conv_c3_edge/aux_conv_c3_edge/kernel:0 (float32_ref 1x1x2x2) [4, bytes: 16]
 aux_conv_c3_edge/aux_conv_c3_edge/bias:0 (float32_ref 2) [2, bytes: 8]
-Total size of variables: 31781927
-Total bytes of variables: 127127708
+Total size of variables: 31790450
+Total bytes of variables: 127161800
