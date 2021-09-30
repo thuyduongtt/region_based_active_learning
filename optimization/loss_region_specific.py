@@ -25,27 +25,42 @@ def calc_score(pred, label, func):
 
 
 def tf_f1_score(pred, label):
-    f1score_tensor = tf.py_func(calc_score, [pred, label, f1_score], tf.float32)
+    def _f1_score(pd, lb):
+        return calc_score(pd, lb, f1_score)
+
+    f1score_tensor = tf.py_func(_f1_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
 def tf_accuracy_score(pred, label):
-    f1score_tensor = tf.py_func(calc_score, [pred, label, accuracy_score], tf.float32)
+    def _accuracy_score(pd, lb):
+        return calc_score(pd, lb, accuracy_score)
+
+    f1score_tensor = tf.py_func(_accuracy_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
 def tf_precision_score(pred, label):
-    f1score_tensor = tf.py_func(calc_score, [pred, label, precision_score], tf.float32)
+    def _precision_score(pd, lb):
+        return calc_score(pd, lb, precision_score)
+
+    f1score_tensor = tf.py_func(_precision_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
 def tf_recall_score(pred, label):
-    f1score_tensor = tf.py_func(calc_score, [pred, label, recall_score], tf.float32)
+    def _recall_score(pd, lb):
+        return calc_score(pd, lb, recall_score)
+
+    f1score_tensor = tf.py_func(_recall_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
 def tf_jaccard_score(pred, label):
-    f1score_tensor = tf.py_func(calc_score, [pred, label, jaccard_score], tf.float32)
+    def _jaccard_score(pd, lb):
+        return calc_score(pd, lb, jaccard_score)
+
+    f1score_tensor = tf.py_func(_jaccard_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
@@ -136,7 +151,6 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
                                 lambda: tf_jaccard_score(pred=pred_bi, label=y_bi))
 
     metrics = {
-        'f1_score': accuracy,
         'accuracy_score': accuracy_score_val,
         'precision_score': precision_score_val,
         'recall_score': recall_score_val,
