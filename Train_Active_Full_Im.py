@@ -26,7 +26,6 @@ print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
 
-
 # IM_WIDTH = 480
 # IM_HEIGHT = 480
 # IM_PAD_WIDTH = 784
@@ -275,7 +274,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
     checkpoint_path = os.path.join(model_dir, 'model.ckpt')
 
-    with tf.Graph().as_default():
+    with tf.Graph().as_default() as old_graph:
         #  This three placeholder is for extracting the augmented training data##
         image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
         label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
