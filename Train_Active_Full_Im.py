@@ -14,8 +14,8 @@ import numpy as np
 import os
 import argparse
 
-
 # import tensorflow.contrib.slim as slim
+from visualization import plot_multi
 
 
 def print_log(*content, file=None):
@@ -441,7 +441,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             # train_writer = tf.summary.FileWriter(model_dir, sess.graph)
             train_tot_stat = np.zeros([epoch_size, 4])
             val_tot_stat = np.zeros([epoch_size // val_step_size, 8])
-            print_log("foreground-background accu, contour loss, contour accuracy, total loss")
+            print_log("foreground-background loss, foreground-background F1, AUC score, contour loss")
             for single_epoch in range(epoch_size):
                 print_log(f'====== Epoch {single_epoch} / {epoch_size}', file=log_file)
                 if auxi_weight_num > 0.001:
@@ -481,6 +481,8 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
                 train_tot_stat[single_epoch, :] = np.mean(train_stat_per_epoch, axis=0)
                 print_log(train_tot_stat[single_epoch, :], file=log_file)
+                plot_multi([train_tot_stat[:, 0], train_tot_stat[:, 1]], 'Loss & F1 Score during Training',
+                           labels=['Loss', 'F1'], output_dir='plots', output_name='loss_f1', ylabel='value')
 
                 if single_epoch % val_step_size == 0:
                     val_iteration = np.shape(x_image_val)[0] // batch_size
@@ -522,6 +524,9 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     print_log(f'Validation at epoch {single_epoch}: {val_tot_stat[i, :4]}', file=log_file)
                     print_log('METRICS:', file=log_file)
                     print_metrics(val_tot_stat[i, 1], val_tot_stat[i, 4], val_tot_stat[i, 5], val_tot_stat[i, 6], val_tot_stat[i, 7], log_file)
+                    plot_multi([val_tot_stat[:, 1], val_tot_stat[:, 4], val_tot_stat[:, 5], val_tot_stat[:, 6], val_tot_stat[:, 7]],
+                               'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
+                               output_dir='plots', output_name='val_scores', ylabel='value')
 
                 if single_epoch % save_checkpoint_period == 0 or single_epoch == (epoch_size - 1):
                     saver_set_all.save(sess, checkpoint_path, global_step=single_epoch)
