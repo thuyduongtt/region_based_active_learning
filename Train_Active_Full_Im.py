@@ -441,7 +441,22 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             # train_writer = tf.summary.FileWriter(model_dir, sess.graph)
             train_tot_stat = np.zeros([epoch_size, 4])
             val_tot_stat = np.zeros([epoch_size // val_step_size, 8])
+
+            train_stats = {
+                'loss': [],
+                'f1': []
+            }
+
+            val_stats = {
+                'f1': [],
+                'accuracy': [],
+                'precision': [],
+                'recall': [],
+                'jaccard': [],
+            }
+
             print_log("foreground-background loss, foreground-background F1, AUC score, contour loss")
+
             for single_epoch in range(epoch_size):
                 print_log(f'====== Epoch {single_epoch} / {epoch_size}', file=log_file)
                 if auxi_weight_num > 0.001:
@@ -481,7 +496,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
                 train_tot_stat[single_epoch, :] = np.mean(train_stat_per_epoch, axis=0)
                 print_log(train_tot_stat[single_epoch, :], file=log_file)
-                plot_multi([train_tot_stat[:, 0], train_tot_stat[:, 1]], 'Loss & F1 Score during Training',
+
+                train_stats['loss'].append(train_tot_stat[single_epoch, 0])
+                train_stats['f1'].append(train_tot_stat[single_epoch, 1])
+                plot_multi([train_stats['loss'], train_stats['f1']], 'Loss & F1 Score during Training',
                            labels=['Loss', 'F1'], output_dir='plots', output_name='loss_f1', ylabel='value')
 
                 if single_epoch % val_step_size == 0:
@@ -522,9 +540,17 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     i = single_epoch // val_step_size
                     val_tot_stat[i, :] = np.mean(val_stat_per_epoch, axis=0)
                     print_log(f'Validation at epoch {single_epoch}: {val_tot_stat[i, :4]}', file=log_file)
+
                     print_log('METRICS:', file=log_file)
                     print_metrics(val_tot_stat[i, 1], val_tot_stat[i, 4], val_tot_stat[i, 5], val_tot_stat[i, 6], val_tot_stat[i, 7], log_file)
-                    plot_multi([val_tot_stat[:, 1], val_tot_stat[:, 4], val_tot_stat[:, 5], val_tot_stat[:, 6], val_tot_stat[:, 7]],
+
+                    val_stats['f1'].append(val_tot_stat[i, 1])
+                    val_stats['accuracy'].append(val_tot_stat[i, 4])
+                    val_stats['precision'].append(val_tot_stat[i, 5])
+                    val_stats['recall'].append(val_tot_stat[i, 6])
+                    val_stats['jaccard'].append(val_tot_stat[i, 7])
+
+                    plot_multi([val_stats['f1'], val_stats['accuracy'], val_stats['precision'], val_stats['recall'], val_stats['jaccard']],
                                'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
                                output_dir='plots', output_name='val_scores', ylabel='value')
 

@@ -10,6 +10,11 @@ Created on Fri Mar  2 11:56:26 2018
 import tensorflow.compat.v1 as tf
 import numpy as np
 from sklearn.metrics import f1_score, roc_curve, auc, accuracy_score, precision_score, recall_score, jaccard_score
+from PIL import Image
+from pathlib import Path
+# import time
+
+# save_dir = 'images'
 
 
 def calc_score(pred, label, func):
@@ -17,9 +22,31 @@ def calc_score(pred, label, func):
     pred: [batch_size, im_h, im_w, 1]
     label: [batch_size, im_h, im_w, 1]
     """
+
+    # pred_to_save = pred[0]
+    # label_to_save = label[0]
+
     pred = np.reshape(pred, [-1])
     label = np.reshape(label, [-1])
     score = func(y_true=label, y_pred=pred)
+
+    ## EXPORT IMAGES FOR DEBUGGING
+    # print(func.__name__)
+    # unique_pred, count_pred = np.unique(pred, return_counts=True)
+    # unique_label, count_label = np.unique(label, return_counts=True)
+    # print(f'pred : {pred.min()}, {pred.max()}, {dict(zip(unique_pred, count_pred))}')
+    # print(f'label: {label.min()}, {label.max()}, {dict(zip(unique_label, count_label))}')
+    #
+    # # export to images
+    # if not Path(save_dir).exists():
+    #     Path(save_dir).mkdir()
+    #
+    # timestamp = time.time()
+
+    # img_pred = Image.fromarray(pred_to_save * 255.)
+    # img_pred.save(f'{save_dir}/{timestamp}_{func.__name__}_pred.png')
+    # img_label = Image.fromarray(label_to_save * 255.)
+    # img_label.save(f'{save_dir}/{timestamp}_{func.__name__}_label.png')
 
     return score.astype('float32')
 

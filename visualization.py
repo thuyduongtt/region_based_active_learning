@@ -1,10 +1,15 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
+import numpy as np
 
+# https://matplotlib.org/3.1.0/gallery/color/named_colors.html
 colors = [
     ['steelblue'],
     ['steelblue', 'firebrick'],
-    ['orange', 'lightskyblue', 'firebrick']
+    ['orange', 'lightskyblue', 'firebrick'],
+    ['orange', 'lightskyblue', 'firebrick', 'limegreen'],
+    ['orange', 'lightskyblue', 'firebrick', 'limegreen', 'darkviolet'],
+    ['orange', 'lightskyblue', 'firebrick', 'limegreen', 'darkviolet', 'deeppink'],
 ]
 
 
@@ -46,7 +51,10 @@ def plot_multi(list_of_values, title, labels, output_dir, output_name,
             m = None
         else:
             m = markers[i]
-        plt.plot(list_of_values[i], label=labels[i], color=colors[n][i], linewidth=linewidth, marker=m)
+        if n < 3:
+            plt.plot(list_of_values[i], label=labels[i], color=colors[n][i], linewidth=linewidth, marker=m)
+        else:
+            plt.plot(list_of_values[i], label=labels[i], linewidth=linewidth, marker=m)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -72,3 +80,8 @@ def plot_multi(list_of_values, title, labels, output_dir, output_name,
 
     plt.savefig(f'{output_dir}/{output_name}.png')
     plt.close('all')
+
+    save_obj = {}
+    for i in range(len(list_of_values)):
+        save_obj[labels[i]] = list_of_values[i]
+    np.save(f'{output_dir}/{output_name}.npy', save_obj)
