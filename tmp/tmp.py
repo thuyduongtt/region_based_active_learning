@@ -1,10 +1,10 @@
 import numpy as np
+from PIL import Image
 import tensorflow as tf
 from sklearn.metrics import jaccard_score
 
 
 def dice_vs_jaccard(y_pred, y_true):
-
     y_true_f = y_true.reshape([1, 20 * 20])
     y_pred_f = y_pred.reshape([1, 20 * 20])
     intersection = np.sum(y_true_f * y_pred_f)
@@ -16,14 +16,17 @@ def dice_vs_jaccard(y_pred, y_true):
     print(jaccard)
 
 
+def test_img():
+    arr = np.random.rand(256, 256, 1)
+    arr2 = (arr * 255).astype(np.uint8).squeeze()
+    print(arr2.shape)
+    img = Image.fromarray(arr2)
+    img.save('test.png')
+
+
 if __name__ == '__main__':
-    y_pred = np.random.rand(20, 20, 1)
-    y_true = np.random.rand(20, 20, 1)
+    import time
 
-    y_pred[y_pred >= 0.5] = 1.
-    y_pred[y_pred < 0.5] = 0.
-
-    y_true[y_true >= 0.5] = 1.
-    y_true[y_true < 0.5] = 0.
-
-    dice_vs_jaccard(y_pred, y_true)
+    t = time.time()
+    print(t)
+    print(int(t))

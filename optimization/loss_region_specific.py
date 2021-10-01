@@ -14,78 +14,83 @@ from PIL import Image
 from pathlib import Path
 import time
 
-# save_dir = 'images'
+save_dir = 'images'
 
 
-def calc_score(pred, label, func):
+def calc_score(pred, label, func, timestamp=None):
     """
     pred: [batch_size, im_h, im_w, 1]
     label: [batch_size, im_h, im_w, 1]
     """
-
-    # pred_to_save = pred[0]
-    # label_to_save = label[0]
 
     pred = np.reshape(pred, [-1])
     label = np.reshape(label, [-1])
     score = func(y_true=label, y_pred=pred)
 
     ## EXPORT IMAGES FOR DEBUGGING
-    # print(func.__name__)
-    # unique_pred, count_pred = np.unique(pred, return_counts=True)
-    # unique_label, count_label = np.unique(label, return_counts=True)
-    # print(f'pred : {pred.min()}, {pred.max()}, {dict(zip(unique_pred, count_pred))}')
-    # print(f'label: {label.min()}, {label.max()}, {dict(zip(unique_label, count_label))}')
-    #
-    # # export to images
-    # if not Path(save_dir).exists():
-    #     Path(save_dir).mkdir()
-    #
-    # timestamp = time.time()
+    if timestamp is not None:
+        # print(func.__name__)
+        # unique_pred, count_pred = np.unique(pred, return_counts=True)
+        # unique_label, count_label = np.unique(label, return_counts=True)
+        # print(f'pred : {pred.min()}, {pred.max()}, {dict(zip(unique_pred, count_pred))}')
+        # print(f'label: {label.min()}, {label.max()}, {dict(zip(unique_label, count_label))}')
 
-    # img_pred = Image.fromarray(pred_to_save * 255.)
-    # img_pred.save(f'{save_dir}/{timestamp}_{func.__name__}_pred.png')
-    # img_label = Image.fromarray(label_to_save * 255.)
-    # img_label.save(f'{save_dir}/{timestamp}_{func.__name__}_label.png')
+        # export to images
+        if not Path(save_dir).exists():
+            Path(save_dir).mkdir()
+
+        pred_to_save = pred.reshape([5, 256, 256, 1])[0]
+        label_to_save = label.reshape([5, 256, 256, 1])[0]
+
+        pred_to_save = (pred_to_save * 255).astype(np.uint8).squeeze()
+        label_to_save = (label_to_save * 255).astype(np.uint8).squeeze()
+
+        img_pred = Image.fromarray(pred_to_save)
+        img_pred.save(f'{save_dir}/{timestamp}_{func.__name__}_pred.png')
+        img_label = Image.fromarray(label_to_save)
+        img_label.save(f'{save_dir}/{timestamp}_{func.__name__}_label.png')
+
+        with open(f'{save_dir}/scores.txt', 'a') as f:
+            print(f"{timestamp} {func.__name__}: {score.astype('float32')}", file=f)
 
     return score.astype('float32')
 
 
-def tf_f1_score(pred, label):
+def tf_f1_score(pred, label, timestamp=None):
     def _f1_score(pd, lb):
-        return calc_score(pd, lb, f1_score)
+        return calc_score(pd, lb, f1_score, timestamp)
 
     f1score_tensor = tf.py_func(_f1_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_accuracy_score(pred, label):
+def tf_accuracy_score(pred, label, timestamp=None):
     def _accuracy_score(pd, lb):
-        return calc_score(pd, lb, accuracy_score)
+        return calc_score(pd, lb, accuracy_score, timestamp)
 
     f1score_tensor = tf.py_func(_accuracy_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_precision_score(pred, label):
+def tf_precision_score(pred, label, timestamp=None):
     def _precision_score(pd, lb):
-        return calc_score(pd, lb, precision_score)
+        return calc_score(pd, lb, precision_score, timestamp)
 
     f1score_tensor = tf.py_func(_precision_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_recall_score(pred, label):
+def tf_recall_score(pred, label, timestamp=None):
     def _recall_score(pd, lb):
-        return calc_score(pd, lb, recall_score)
+        return calc_score(pd, lb, recall_score, timestamp)
 
     f1score_tensor = tf.py_func(_recall_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_jaccard_score(pred, label):
+def tf_jaccard_score(pred, label, timestamp=None):
     def _jaccard_score(pd, lb):
-        return calc_score(pd, lb, jaccard_score)
+        return calc_score(pd, lb, jaccard_score, timestamp)
 
     f1score_tensor = tf.py_func(_jaccard_score, [pred, label], tf.float32)
     return f1score_tensor
@@ -154,9 +159,11 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     pred_bi_cond_f1 = tf.equal(tf.reduce_sum(pred_bi), 0)
     y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
 
+    timestamp = f'{time.time()}'.replace('.', '_')
+
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                        lambda: tf.constant(1.0),
-                       lambda: tf_f1_score(pred=pred_bi, label=y_bi))
+                       lambda: tf_f1_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
 
     auc_pred_bi = tf.boolean_mask(tf.reshape(fuse_map[:, :, :, 1], [-1]), tf.equal(binary_mask, 1))
     auc_score = tf.cond(tf.equal(tf.reduce_mean(y_bi), 1),
@@ -166,16 +173,16 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     # other metrics: accuracy_score, precision_score, recall_score, jaccard_score
     accuracy_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                  lambda: tf.constant(1.0),
-                                 lambda: tf_accuracy_score(pred=pred_bi, label=y_bi))
+                                 lambda: tf_accuracy_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
     precision_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                   lambda: tf.constant(1.0),
-                                  lambda: tf_precision_score(pred=pred_bi, label=y_bi))
+                                  lambda: tf_precision_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
     recall_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                lambda: tf.constant(1.0),
-                               lambda: tf_recall_score(pred=pred_bi, label=y_bi))
+                               lambda: tf_recall_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
     jaccard_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                 lambda: tf.constant(1.0),
-                                lambda: tf_jaccard_score(pred=pred_bi, label=y_bi))
+                                lambda: tf_jaccard_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
 
     metrics = {
         'accuracy_score': accuracy_score_val,

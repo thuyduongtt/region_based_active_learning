@@ -290,7 +290,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
     checkpoint_path = os.path.join(model_dir, 'model.ckpt')
 
-    with tf.Graph().as_default() as old_graph:
+    with tf.Graph().as_default():
         #  This three placeholder is for extracting the augmented training data##
         image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
         label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
@@ -424,7 +424,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print_log("The L2 regularization is turned on:", flag_l2_regu, file=log_file)
         print_log("=====================================================", file=log_file)
 
-        with tf.Session() as sess:
+        with tf.Session().as_default() as sess:
             if flag_pretrain is False:
                 sess.run(tf.global_variables_initializer())
                 sess.run(tf.local_variables_initializer())
