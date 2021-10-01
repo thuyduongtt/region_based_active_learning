@@ -325,7 +325,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         x_pl_group = [im_group[1][0], im_group[1][1], im_group[1][2], y_imindex_pl, y_clsindex_pl]
         x_image_val, y_label_val, y_edge_val = im_group[2][0], im_group[2][1], im_group[2][2]
         print_log("-----Before updating, the shape for the training data and pool data-----", file=log_file)
-        [print_log(np.shape(v), np.shape(q)) for v, q in zip(x_tr_group, x_pl_group, file=log_file)]
+        [print_log(np.shape(v), np.shape(q), file=log_file) for v, q in zip(x_tr_group, x_pl_group)]
         if acq_index_old is not None:
             for remove_data in range(np.shape(acq_index_old)[0]):
                 num_images_in_pool = range(np.shape(x_pl_group[0])[0])
@@ -350,7 +350,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             for i in range(5):
                 x_tr_group[i] = np.concatenate([x_tr_group[i], x_pl_group[i]], axis=0)
         print_log("---After updating, the shape for the training data and pool data-------", file=log_file)
-        [print_log(np.shape(v), np.shape(q)) for v, q in zip(x_tr_group, x_pl_group, file=log_file)]
+        [print_log(np.shape(v), np.shape(q), file=log_file) for v, q in zip(x_tr_group, x_pl_group)]
         x_image_tr, y_label_tr, y_edge_tr, y_imindex_tr, y_clsindex_tr = x_tr_group
 
         iteration = np.shape(x_image_tr)[0] // batch_size
