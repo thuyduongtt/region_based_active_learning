@@ -500,7 +500,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 train_stats['loss'].append(train_tot_stat[single_epoch, 0])
                 train_stats['f1'].append(train_tot_stat[single_epoch, 1])
                 plot_multi([train_stats['loss'], train_stats['f1']], 'Loss & F1 Score during Training',
-                           labels=['Loss', 'F1'], output_dir='plots', output_name='loss_f1', ylabel='value')
+                           labels=['Loss', 'F1'], output_dir='output', output_name='loss_f1', ylabel='value')
 
                 if single_epoch % val_step_size == 0:
                     val_iteration = np.shape(x_image_val)[0] // batch_size
@@ -552,7 +552,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
                     plot_multi([val_stats['f1'], val_stats['accuracy'], val_stats['precision'], val_stats['recall'], val_stats['jaccard']],
                                'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
-                               output_dir='plots', output_name='val_scores', ylabel='value')
+                               output_dir='output', output_name='val_scores', ylabel='value')
 
                 if single_epoch % save_checkpoint_period == 0 or single_epoch == (epoch_size - 1):
                     saver_set_all.save(sess, checkpoint_path, global_step=single_epoch)

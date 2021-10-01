@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.metrics import f1_score, roc_curve, auc, accuracy_score, precision_score, recall_score, jaccard_score
 from PIL import Image
 from pathlib import Path
-# import time
+import time
 
 # save_dir = 'images'
 
