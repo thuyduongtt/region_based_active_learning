@@ -13,6 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
 
 # import tensorflow.contrib.slim as slim
 from visualization import plot_multi
@@ -34,18 +35,6 @@ exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
-
-# IM_WIDTH = 480
-# IM_HEIGHT = 480
-# IM_PAD_WIDTH = 784
-# IM_PAD_HEIGHT = 528
-# IM_CHANNEL = 3
-
-IM_WIDTH = 256
-IM_HEIGHT = 256
-IM_PAD_WIDTH = 256
-IM_PAD_HEIGHT = 256
-IM_CHANNEL = 6
 
 
 def running_train_use_all_data(version_space):
@@ -266,8 +255,8 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         os.makedirs(model_dir)
     image_w, image_h, image_c = [IM_WIDTH, IM_HEIGHT, IM_CHANNEL]
     image_shape = np.array([image_w, image_h, image_c])
-    targ_height_npy = IM_HEIGHT  # this is for padding images
-    targ_width_npy = IM_WIDTH  # this is for padding images
+    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
+    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
     flag_decay = True
     if (acq_method == "F") and (acq_index_old is None):
         learning_rate = 0.0009
@@ -362,12 +351,12 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         # ----------Perform data augmentation only on training data-----------------------------------------#
         x_image_aug, y_label_aug, y_edge_aug, _ = aug_train_data(image_aug_placeholder, label_aug_placeholder,
                                                                  edge_aug_placeholder, bi_mask_tr,
-                                                                 batch_size, True, image_shape)
+                                                                 batch_size, True, image_shape, image_channel=image_c)
         x_image_aug_val, y_label_aug_val, y_edge_aug_val, _ = aug_train_data(image_aug_placeholder,
                                                                              label_aug_placeholder,
                                                                              edge_aug_placeholder, bi_mask_val,
                                                                              batch_size, True,
-                                                                             image_shape)
+                                                                             image_shape, image_channel=image_c)
 
         # ------------------------------Here is for build up the network----------------------------------#
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,

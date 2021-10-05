@@ -10,13 +10,12 @@ This script is utilized for creating the data
 
 """
 import os
+from pathlib import Path
 
 import numpy as np
-import scipy
+from PIL import Image
 from scipy import ndimage
 from skimage.morphology import dilation, disk
-from pathlib import Path
-from PIL import Image
 
 path_mom = "DATA/"  # the directory for saving data
 # path_mom = "/Users/bo/Documents/Exp_Data/"

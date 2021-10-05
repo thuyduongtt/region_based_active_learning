@@ -15,7 +15,7 @@ from sklearn.utils import shuffle
 from select_regions import selection as SPR_Region_Im
 import pickle
 import argparse
-
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
 
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
@@ -194,10 +194,10 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
     # batch_size = 5
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    image_w, image_h, image_c = [480, 480, 3]
+    image_w, image_h, image_c = [IM_WIDTH, IM_HEIGHT, IM_CHANNEL]
     IMAGE_SHAPE = np.array([image_w, image_h, image_c])
-    targ_height_npy = 528  # this is for padding images
-    targ_width_npy = 784  # this is for padding images
+    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
+    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
     FLAG_DECAY = True
     #    if (Acq_Method == "F") and (Acq_Index_Old is None):
     #        learning_rate = 0.0009
@@ -220,7 +220,7 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
     # ----The part below is for extracting the initial Training Data and Initial Val Data-------------------#
     with tf.Graph().as_default():
         #  This three placeholder is for extracting the augmented training data##
-        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, 3])
+        image_aug_placeholder = tf.placeholder(tf.float32, [batch_size, targ_height_npy, targ_width_npy, image_c])
         label_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         edge_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
         binary_mask_aug_placeholder = tf.placeholder(tf.int64, [batch_size, targ_height_npy, targ_width_npy, 1])
@@ -250,11 +250,11 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
                                                                                  label_aug_placeholder,
                                                                                  edge_aug_placeholder,
                                                                                  binary_mask_aug_placeholder,
-                                                                                 batch_size, True, IMAGE_SHAPE)
+                                                                                 batch_size, True, IMAGE_SHAPE, image_channel=image_c)
         x_image_aug_val, y_label_aug_val, y_edge_aug_val, \
-            y_binary_mask_aug_val = aug_train_data(image_aug_placeholder, label_aug_placeholder,
-                                                   edge_aug_placeholder, binary_mask_aug_placeholder,
-                                                   batch_size, False, IMAGE_SHAPE)
+        y_binary_mask_aug_val = aug_train_data(image_aug_placeholder, label_aug_placeholder,
+                                               edge_aug_placeholder, binary_mask_aug_placeholder,
+                                               batch_size, False, IMAGE_SHAPE, image_channel=image_c)
 
         # ------------------------------Here is for build up the network-------------------------------------------#
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,
@@ -382,9 +382,9 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
                     val_stat_per_epoch = np.zeros([val_iteration, 4])
                     for single_batch_val in range(val_iteration):
                         x_image_batch_val, y_label_batch_val, y_edge_batch_val, \
-                            y_binary_mask_batch_val, val_batch_index = generate_batch(x_image_val, y_label_val,
-                                                                                      y_edge_val, y_binary_mask_val,
-                                                                                      val_batch_index, batch_size)
+                        y_binary_mask_batch_val, val_batch_index = generate_batch(x_image_val, y_label_val,
+                                                                                  y_edge_val, y_binary_mask_val,
+                                                                                  val_batch_index, batch_size)
                         feed_dict_aug_val = {image_aug_placeholder: x_image_batch_val,
                                              label_aug_placeholder: y_label_batch_val,
                                              edge_aug_placeholder: y_edge_batch_val,
