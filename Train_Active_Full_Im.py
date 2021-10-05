@@ -15,7 +15,6 @@ import os
 import argparse
 from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path
 
-# import tensorflow.contrib.slim as slim
 from visualization import plot_multi
 
 
@@ -120,8 +119,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
 
-        logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage,
-                                                                             single_round_number))
+        logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
         for acquire_single_step in range(total_active_step):
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
@@ -143,7 +141,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                 acq_index_old_sele = acq_index_old[:acquire_single_step, :]
             print_log("The selected index", acq_index_old_sele, file=log_file)
             print_log("===================================================================================", file=log_file)
-            num_repeat_per_exp = 3
+            num_repeat_per_exp = 1  # Original: 3
             tot_train_val_stat_for_diff_exp_same_step = np.zeros(
                 [num_repeat_per_exp, 4])  # fb loss, ed loss, fb f1 score, fb auc score
 
