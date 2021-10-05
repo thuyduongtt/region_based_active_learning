@@ -10,6 +10,7 @@ import tensorflow as tf
 from tensorflow.contrib import image as contrib_image
 import cv2
 import matplotlib.pyplot as plt
+from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT
 
 path_mom = "DATA/"  # NOTE, NEED TO BE MANUALLY DEFINED
 
@@ -191,7 +192,7 @@ def extract_diff_data(image, label, edge, im_index, cls_index, choose_index):
     return new_data[0], new_data[1], new_data[2], new_data[3], new_data[4]
 
 
-def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
+def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape, image_channel=3):
     """This function is used for performing data augmentation. 
     image: placeholder. shape: [Batch_Size, im_h, im_w, 3], tf.float32
     label: placeholder. shape: [Batch_Size, im_h, im_w, 1], tf.int64

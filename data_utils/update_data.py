@@ -6,9 +6,8 @@ This file contains all the function for preparing data in the region-specific ac
 @author: s161488
 """
 import numpy as np
-
-from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT
 from data_utils.prepare_data import prepare_train_data, padding_training_data
+from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT
 
 
 def give_init_train_and_val_data(mom_data_path):
