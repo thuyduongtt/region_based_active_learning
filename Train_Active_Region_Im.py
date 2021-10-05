@@ -15,13 +15,13 @@ from sklearn.utils import shuffle
 from select_regions import selection as SPR_Region_Im
 import pickle
 import argparse
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path
 
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
-training_data_path = "DATA/Data/glanddata.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
-test_data_path = "DATA/Data/glanddata_testb.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+# training_data_path = "DATA/Data/glanddata.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+# test_data_path = "DATA/Data/glanddata_testb.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 resnet_dir = "pretrain_model/"
 exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
 ckpt_dir_init = "Exp_Stat/initial_model/"

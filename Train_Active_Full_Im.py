@@ -13,7 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path
 
 # import tensorflow.contrib.slim as slim
 from visualization import plot_multi
@@ -28,8 +28,8 @@ def print_log(*content, file=None):
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
 print("--------------------------------------------------------------")
-training_data_path = "DATA/Data/QB.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
-test_data_path = "DATA/Data/QB_test_benign.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+# training_data_path = "DATA/Data/QB.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
+# test_data_path = "DATA/Data/QB_test_benign.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 resnet_dir = "pretrain_model/"
 exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
 print("--------------------------------------------------------------")
