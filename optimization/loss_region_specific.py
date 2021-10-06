@@ -14,7 +14,7 @@ from PIL import Image
 from pathlib import Path
 import time
 
-save_dir = 'images'
+save_dir = 'output/images'
 
 
 def calc_score(pred, label, func, timestamp=None, original_shape=None):
@@ -37,7 +37,7 @@ def calc_score(pred, label, func, timestamp=None, original_shape=None):
 
         # export to images
         if not Path(save_dir).exists():
-            Path(save_dir).mkdir()
+            Path(save_dir).mkdir(parents=True)
 
         pred_to_save = pred.reshape(original_shape)[0]
         label_to_save = label.reshape(original_shape)[0]

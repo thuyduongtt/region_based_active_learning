@@ -13,7 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path, MAX_RUN_COUNT
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, N_UNLABELED, training_data_path, MAX_RUN_COUNT
 
 from visualization import plot_multi
 
@@ -76,12 +76,11 @@ def running_initial_model(version_space):
                    batch_size, using_full_training_data)
 
 
-def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2], n_remain_samples=65):
+def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
     """Perform all the acquisition steps using a single uncertainty estimation methods
     Args:
         stage: int, 0 means random selection 1 means VarRatio, 2 means Entropy, 3 means BALD
         round_number: int, defines how many times do we want to repeat the experiments.
-        n_remain_samples: num of remaining (unlabeled) samples
 
     Note:
         In order to run this function, you will need to download the resnet_ckpt from tensorflow repo
@@ -119,7 +118,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2], n_rem
         acq_selec_method = acq_method_total[stage]
 
         if acq_selec_method == "A":
-            acq_index_update = np.random.choice(range(n_remain_samples), num_selec_point_from_pool, replace=False)
+            acq_index_update = np.random.choice(range(N_UNLABELED), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
 
@@ -245,7 +244,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2], n_rem
             acq_index_old[acquire_single_step, :] = acq_index_update
             acq_index_rm = np.array(acq_index_old[:acquire_single_step + 1, :]).astype('int64')
             if acq_selec_method == "A":
-                selec_index = np.random.choice(range(n_remain_samples - (acquire_single_step + 1) * num_selec_point_from_pool),
+                selec_index = np.random.choice(range(N_UNLABELED - (acquire_single_step + 1) * num_selec_point_from_pool),
                                                num_selec_point_from_pool, replace=False)
                 acq_index_update = selec_index
             else:
@@ -586,4 +585,4 @@ if __name__ == '__main__':
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
     args = parser.parse_args()
 
-    running_loop_active_learning_full_image(args.stage, n_remain_samples=1330)
+    running_loop_active_learning_full_image(args.stage)
