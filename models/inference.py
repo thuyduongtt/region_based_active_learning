@@ -6,6 +6,8 @@ from the encoder are utilized as the initialization for different decoder channe
 @author: s161488
 """
 import tensorflow as tf
+
+from CONSTS import IM_CHANNEL
 from models.layer_utils import conv_layer_renew, deconv_layer_renew
 import models.resnet_v2 as resnet_v2
 import os
@@ -19,12 +21,19 @@ def ResNet_V2_DMNN(images, training_state, dropout_state, Num_Classes):
     # print(f'images.shape: {images.shape}')  # (5, 256, 256, 6)
 
     # add a new layer to convert the number of channels
-    input_layer = tf.layers.conv2d(images, filters=3, kernel_size=7, strides=1, padding='same')
+    if IM_CHANNEL == 3:
+        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+            _, end_points = resnet_v2.resnet_v2_50(images, num_classes=Num_Classes, dropout_phase=dropout_state,
+                                                   is_training=training_state, global_pool=False, output_stride=16,
+                                                   spatial_squeeze=False)
 
-    with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-        _, end_points = resnet_v2.resnet_v2_50(input_layer, num_classes=Num_Classes, dropout_phase=dropout_state,
-                                               is_training=training_state, global_pool=False, output_stride=16,
-                                               spatial_squeeze=False)
+    else:
+        input_layer = tf.layers.conv2d(images, filters=3, kernel_size=7, strides=1, padding='same')
+
+        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+            _, end_points = resnet_v2.resnet_v2_50(input_layer, num_classes=Num_Classes, dropout_phase=dropout_state,
+                                                   is_training=training_state, global_pool=False, output_stride=16,
+                                                   spatial_squeeze=False)
 
     deconv_u1 = deconv_layer_renew(end_points[os.path.join(arch_name, 'block4')], filter_shape=24,
                                    output_channel=Num_Classes, name="deconv_layer_u1", strides=16,

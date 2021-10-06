@@ -26,6 +26,7 @@ def calc_score(pred, label, func, timestamp=None, original_shape=None):
     pred = np.reshape(pred, [-1])
     label = np.reshape(label, [-1])
     score = func(y_true=label, y_pred=pred)
+    score = score.astype('float32')
 
     # EXPORT IMAGES FOR DEBUGGING
     if timestamp is not None:
@@ -46,14 +47,14 @@ def calc_score(pred, label, func, timestamp=None, original_shape=None):
         label_to_save = (label_to_save * 255).astype(np.uint8).squeeze()
 
         img_pred = Image.fromarray(pred_to_save)
-        img_pred.save(f'{save_dir}/{timestamp}_{func.__name__}_pred.png')
+        img_pred.save(f'{save_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_pred.png')
         img_label = Image.fromarray(label_to_save)
-        img_label.save(f'{save_dir}/{timestamp}_{func.__name__}_label.png')
+        img_label.save(f'{save_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_label.png')
 
         with open(f'{save_dir}/scores.txt', 'a') as f:
-            print(f"{timestamp} {func.__name__}: {score.astype('float32')}", file=f)
+            print(f"{timestamp} {func.__name__}: {score}", file=f)
 
-    return score.astype('float32')
+    return score
 
 
 def tf_f1_score(pred, label, timestamp=None, original_shape=None):

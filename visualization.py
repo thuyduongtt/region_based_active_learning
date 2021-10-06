@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from pathlib import Path
 import numpy as np
 
 # https://matplotlib.org/3.1.0/gallery/color/named_colors.html
@@ -74,9 +73,6 @@ def plot_multi(list_of_values, title, labels, output_dir, output_name,
 
     if upperbound > 0:
         plt.axhline(upperbound, color='k', linestyle='--', linewidth=1.)
-
-    if not Path(output_dir).exists():
-        Path(output_dir).mkdir(parents=True)
 
     plt.savefig(f'{output_dir}/{output_name}.png')
     plt.close('all')

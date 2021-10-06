@@ -13,7 +13,9 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, N_UNLABELED, training_data_path, MAX_RUN_COUNT
+import time
+from pathlib import Path
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, N_UNLABELED, training_data_path, MAX_RUN_COUNT, OUTPUT_DIR
 
 from visualization import plot_multi
 
@@ -91,7 +93,15 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         rm eval.graph
 
     """
-    log_file = open('log.txt', 'a')
+    if not Path(OUTPUT_DIR).exists():
+        Path(OUTPUT_DIR).mkdir()
+
+    log_file = open(f'{OUTPUT_DIR}/log.txt', 'w')
+    log_file.write('============================\n')
+    log_file.write(f'====== START TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
+    log_file.close()
+
+    log_file = open(f'{OUTPUT_DIR}/log.txt', 'a')
 
     agg_method = "Simple_Sum"
     agg_quantile_cri = 0
@@ -260,6 +270,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
 
+    log_file.write('============================\n')
+    log_file.write(f'====== END TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
     log_file.close()
 
 
@@ -267,7 +279,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                epsilon_opt, batch_size, using_full_training_data=False, flag_pretrain=False):
     # --------Here lots of parameters need to be set------Or maybe we could set it in the configuration file-----#
 
-    log_file = open('log.txt', 'a')
+    log_file = open(f'{OUTPUT_DIR}/log.txt', 'a')
 
     # batch_size = 5
     if not os.path.exists(model_dir):
@@ -569,7 +581,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     np.save(os.path.join(model_dir, 'trainstat'), train_tot_stat)
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
 
-        log_file.close()
+    log_file.close()
 
 
 def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_score, log_file):

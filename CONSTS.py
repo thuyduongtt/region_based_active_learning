@@ -17,3 +17,4 @@ training_data_path = "DATA/Data/QB.npy"
 test_data_path = "DATA/Data/QB_test_benign.npy"
 
 MAX_RUN_COUNT = 10
+OUTPUT_DIR = 'output'
