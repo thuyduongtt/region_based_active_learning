@@ -13,3 +13,5 @@ IM_PAD_HEIGHT = 256
 IM_CHANNEL = 6
 training_data_path = "DATA/Data/QB.npy"
 test_data_path = "DATA/Data/QB_test_benign.npy"
+
+MAX_RUN_COUNT = 10

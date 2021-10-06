@@ -13,7 +13,7 @@ from sklearn.utils import shuffle
 import numpy as np
 import os
 import argparse
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path
+from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, training_data_path, MAX_RUN_COUNT
 
 from visualization import plot_multi
 
@@ -76,11 +76,12 @@ def running_initial_model(version_space):
                    batch_size, using_full_training_data)
 
 
-def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
+def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2], n_remain_samples=65):
     """Perform all the acquisition steps using a single uncertainty estimation methods
     Args:
         stage: int, 0 means random selection 1 means VarRatio, 2 means Entropy, 3 means BALD
         round_number: int, defines how many times do we want to repeat the experiments.
+        n_remain_samples: num of remaining (unlabeled) samples
 
     Note:
         In order to run this function, you will need to download the resnet_ckpt from tensorflow repo
@@ -102,20 +103,23 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         acqu_index_all[2, :] = [45, 57, 33, 9, 30]
     else:
         print_log("This acquisition method is on its way :) ", file=log_file)
+
     for single_round_number in round_number:
         total_folder_info = []
         acqu_index_init_total = acqu_index_all
         print_log("The initial selected image index from starting point", acqu_index_init_total, file=log_file)
         flag_arch_name = "resnet_v2_50"
         resnet_ckpt = os.path.join(resnet_dir, flag_arch_name) + '.ckpt'
+
         total_active_step = 10
         num_selec_point_from_pool = 5
+
         acq_index_old = np.zeros([total_active_step, num_selec_point_from_pool])
         acq_method_total = ["A", "B", "C", "D"]
         acq_selec_method = acq_method_total[stage]
 
         if acq_selec_method == "A":
-            acq_index_update = np.random.choice(range(65), num_selec_point_from_pool, replace=False)
+            acq_index_update = np.random.choice(range(n_remain_samples), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
 
@@ -149,7 +153,17 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                 print_log("==============Start Experiment No.%d============================================" % repeat_time, file=log_file)
                 model_dir_sub = os.path.join(model_dir, 'rep_%d' % repeat_time)
                 signal = False
+
+                run_count = 0
+
                 while signal is False:
+                    run_count += 1
+
+                    # break if in case too many rounds
+                    if run_count > MAX_RUN_COUNT:
+                        print_log('MAX_RUN_COUNT has been reached, loop is terminated !!!', file=log_file)
+                        break
+
                     signal_for_bad_optimal = False
                     while signal_for_bad_optimal is False:
                         train_full(resnet_ckpt=resnet_ckpt,
@@ -194,8 +208,13 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                     sec_cri = [np.mean(train_stat[-20:, 1]), np.mean(val_stat[-10:, 1])]  # fb f1 score
                     thir_cri = [np.mean(train_stat[-20:, 2]), np.mean(val_stat[-10:, 2])]  # fb auc score
                     fourth_cri = [np.mean(train_stat[-20:, 0]), np.mean(val_stat[-10:, 0])]  # fb loss
-                    if np.mean(first_cri) >= 0.50 or np.mean(sec_cri) <= 0.80 or np.mean(thir_cri) <= 0.80 or np.mean(
-                            fourth_cri) > 0.50:
+
+                    first_mean = np.mean(first_cri)
+                    second_mean = np.mean(sec_cri)
+                    third_mean = np.mean(thir_cri)
+                    fourth_mean = np.mean(fourth_cri)
+                    if first_mean >= 0.50 or second_mean <= 0.80 or third_mean <= 0.80 or fourth_mean > 0.50:
+                        print_log(f'first_mean: {first_mean}, second_mean: {second_mean}, third_mean: {third_mean}, fourth_mean: {fourth_mean}', file=log_file)
                         signal = False
                     else:
                         signal = True
@@ -210,6 +229,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                                                                      np.mean(sec_cri),
                                                                                      np.mean(thir_cri)]
                 print_log("=============Finish Experiment No.%d===================" % repeat_time, file=log_file)
+
             # ------Below is for selecting the best experiment based on the training and validation statistics-----#
             fb_loss_index = np.argmin(tot_train_val_stat_for_diff_exp_same_step[:, 0])
             ed_loss_index = np.argmin(tot_train_val_stat_for_diff_exp_same_step[:, 1])
@@ -225,7 +245,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             acq_index_old[acquire_single_step, :] = acq_index_update
             acq_index_rm = np.array(acq_index_old[:acquire_single_step + 1, :]).astype('int64')
             if acq_selec_method == "A":
-                selec_index = np.random.choice(range(65 - (acquire_single_step + 1) * num_selec_point_from_pool),
+                selec_index = np.random.choice(range(n_remain_samples - (acquire_single_step + 1) * num_selec_point_from_pool),
                                                num_selec_point_from_pool, replace=False)
                 acq_index_update = selec_index
             else:
@@ -234,6 +254,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                         num_selec_point_from_pool, agg_method, agg_quantile_cri,
                                         data_path=training_data_path)
                 acq_index_update = selec_index[:, 0]
+
+            print_log('ACCQUIRE:', file=log_file)
             print_log(acquire_single_step, acq_index_update, np.shape(acq_index_update), file=log_file)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
@@ -564,4 +586,4 @@ if __name__ == '__main__':
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
     args = parser.parse_args()
 
-    running_loop_active_learning_full_image(args.stage)
+    running_loop_active_learning_full_image(args.stage, n_remain_samples=1330)
