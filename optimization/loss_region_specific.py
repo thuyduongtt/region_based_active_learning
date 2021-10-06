@@ -17,7 +17,7 @@ import time
 save_dir = 'images'
 
 
-def calc_score(pred, label, func, timestamp=None):
+def calc_score(pred, label, func, timestamp=None, original_shape=None):
     """
     pred: [batch_size, im_h, im_w, 1]
     label: [batch_size, im_h, im_w, 1]
@@ -27,7 +27,7 @@ def calc_score(pred, label, func, timestamp=None):
     label = np.reshape(label, [-1])
     score = func(y_true=label, y_pred=pred)
 
-    ## EXPORT IMAGES FOR DEBUGGING
+    # EXPORT IMAGES FOR DEBUGGING
     if timestamp is not None:
         # print(func.__name__)
         # unique_pred, count_pred = np.unique(pred, return_counts=True)
@@ -39,8 +39,8 @@ def calc_score(pred, label, func, timestamp=None):
         if not Path(save_dir).exists():
             Path(save_dir).mkdir()
 
-        pred_to_save = pred.reshape([5, 256, 256, 1])[0]
-        label_to_save = label.reshape([5, 256, 256, 1])[0]
+        pred_to_save = pred.reshape(original_shape)[0]
+        label_to_save = label.reshape(original_shape)[0]
 
         pred_to_save = (pred_to_save * 255).astype(np.uint8).squeeze()
         label_to_save = (label_to_save * 255).astype(np.uint8).squeeze()
@@ -56,41 +56,41 @@ def calc_score(pred, label, func, timestamp=None):
     return score.astype('float32')
 
 
-def tf_f1_score(pred, label, timestamp=None):
+def tf_f1_score(pred, label, timestamp=None, original_shape=None):
     def _f1_score(pd, lb):
-        return calc_score(pd, lb, f1_score, timestamp)
+        return calc_score(pd, lb, f1_score, timestamp, original_shape)
 
     f1score_tensor = tf.py_func(_f1_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_accuracy_score(pred, label, timestamp=None):
+def tf_accuracy_score(pred, label, timestamp=None, original_shape=None):
     def _accuracy_score(pd, lb):
-        return calc_score(pd, lb, accuracy_score, timestamp)
+        return calc_score(pd, lb, accuracy_score, timestamp, original_shape)
 
     f1score_tensor = tf.py_func(_accuracy_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_precision_score(pred, label, timestamp=None):
+def tf_precision_score(pred, label, timestamp=None, original_shape=None):
     def _precision_score(pd, lb):
-        return calc_score(pd, lb, precision_score, timestamp)
+        return calc_score(pd, lb, precision_score, timestamp, original_shape)
 
     f1score_tensor = tf.py_func(_precision_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_recall_score(pred, label, timestamp=None):
+def tf_recall_score(pred, label, timestamp=None, original_shape=None):
     def _recall_score(pd, lb):
-        return calc_score(pd, lb, recall_score, timestamp)
+        return calc_score(pd, lb, recall_score, timestamp, original_shape)
 
     f1score_tensor = tf.py_func(_recall_score, [pred, label], tf.float32)
     return f1score_tensor
 
 
-def tf_jaccard_score(pred, label, timestamp=None):
+def tf_jaccard_score(pred, label, timestamp=None, original_shape=None):
     def _jaccard_score(pd, lb):
-        return calc_score(pd, lb, jaccard_score, timestamp)
+        return calc_score(pd, lb, jaccard_score, timestamp, original_shape)
 
     f1score_tensor = tf.py_func(_jaccard_score, [pred, label], tf.float32)
     return f1score_tensor
@@ -131,6 +131,8 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     Because there is a class imbalancing situation, the pixels belong to background must be much larger than the pixels belong to
     edge, so that we add a penalty beta. beta = Y_/Y. 
     """
+    original_shape = labels.shape
+
     y = tf.reshape(labels, [-1])
     y = tf.cast(tf.not_equal(y, 0), tf.int32)
     Num_Map = np.shape(logits)[0]
@@ -163,7 +165,7 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
 
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                        lambda: tf.constant(1.0),
-                       lambda: tf_f1_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
+                       lambda: tf_f1_score(pred=pred_bi, label=y_bi, timestamp=timestamp, original_shape=original_shape))
 
     auc_pred_bi = tf.boolean_mask(tf.reshape(fuse_map[:, :, :, 1], [-1]), tf.equal(binary_mask, 1))
     auc_score = tf.cond(tf.equal(tf.reduce_mean(y_bi), 1),
@@ -173,16 +175,16 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     # other metrics: accuracy_score, precision_score, recall_score, jaccard_score
     accuracy_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                  lambda: tf.constant(1.0),
-                                 lambda: tf_accuracy_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
+                                 lambda: tf_accuracy_score(pred=pred_bi, label=y_bi, timestamp=timestamp, original_shape=original_shape))
     precision_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                   lambda: tf.constant(1.0),
-                                  lambda: tf_precision_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
+                                  lambda: tf_precision_score(pred=pred_bi, label=y_bi, timestamp=timestamp, original_shape=original_shape))
     recall_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                lambda: tf.constant(1.0),
-                               lambda: tf_recall_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
+                               lambda: tf_recall_score(pred=pred_bi, label=y_bi, timestamp=timestamp, original_shape=original_shape))
     jaccard_score_val = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                                 lambda: tf.constant(1.0),
-                                lambda: tf_jaccard_score(pred=pred_bi, label=y_bi, timestamp=timestamp))
+                                lambda: tf_jaccard_score(pred=pred_bi, label=y_bi, timestamp=timestamp, original_shape=original_shape))
 
     metrics = {
         'accuracy_score': accuracy_score_val,
