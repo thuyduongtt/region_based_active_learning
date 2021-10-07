@@ -163,6 +163,7 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
 
     timestamp = f'{time.time()}'.replace('.', '_')
+    # timestamp = None
 
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                        lambda: tf.constant(1.0),

@@ -213,3 +213,8 @@ def transfer_data_to_dict_test():
         print("Creating QB test data (malignant)")
     print("Saving the data in path:", filename.split(".")[0])
     np.save(filename.split(".")[0], data1)
+
+
+if __name__ == '__main__':
+    transfer_data_to_dict()
+    transfer_data_to_dict_test()
