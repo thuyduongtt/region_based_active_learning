@@ -72,7 +72,7 @@ def read_gland_data(im_list, la_list, split_name='train'):
         im = np.concatenate((im1, im2), axis=-1)
 
         label_im = Image.open(la_filename)
-        la = np.array(label_im)
+        la = 255 - np.array(label_im)  # inverse image: white pixels indicate changes
 
         images.append(im)
         labels.append(la)

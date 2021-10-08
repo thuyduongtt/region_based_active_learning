@@ -141,8 +141,7 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     binary_mask = tf.reshape(binary_mask, [-1])  # [batch_size, imh, imw, 1]
     binary_mask = tf.cast(tf.not_equal(binary_mask, 0), tf.int32)
     for i in range(Num_Map):
-        cross_entropy_sep = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=tf.reshape(logits[i], [-1, 2]),
-                                                                           labels=y)
+        cross_entropy_sep = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=tf.reshape(logits[i], [-1, 2]), labels=y)
         cross_entropy_sep = tf.boolean_mask(cross_entropy_sep, tf.equal(binary_mask, 1))
         cross_entropy_sep = tf.reduce_mean(cross_entropy_sep, name='auxiliary' + loss_name + '%d' % i)
         tf.add_to_collection('loss', cross_entropy_sep)
@@ -162,7 +161,7 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     pred_bi_cond_f1 = tf.equal(tf.reduce_sum(pred_bi), 0)
     y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
 
-    timestamp = f'{time.time()}'.replace('.', '_')
+    timestamp = f'{loss_name}_{time.time()}'.replace('.', '_')
     # timestamp = None
 
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),

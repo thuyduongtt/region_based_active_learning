@@ -1,3 +1,4 @@
+# DS_NAME = 'gland'
 # IM_WIDTH = 480
 # IM_HEIGHT = 480
 # IM_PAD_WIDTH = 784
@@ -7,6 +8,7 @@
 # training_data_path = "DATA/Data/glanddata.npy"
 # test_data_path = "DATA/Data/glanddata_testb.npy"
 
+DS_NAME = 'QB'
 IM_WIDTH = 256
 IM_HEIGHT = 256
 IM_PAD_WIDTH = 256

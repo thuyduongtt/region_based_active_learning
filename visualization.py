@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 # https://matplotlib.org/3.1.0/gallery/color/named_colors.html
 colors = [
@@ -81,3 +82,11 @@ def plot_multi(list_of_values, title, labels, output_dir, output_name,
     for i in range(len(list_of_values)):
         save_obj[labels[i]] = list_of_values[i]
     np.save(f'{output_dir}/{output_name}.npy', save_obj)
+
+
+def export_label(label, path):
+    mx = label.max()
+    scale = 255 if mx <= 1 else 1
+
+    img = Image.fromarray((label * scale).astype(np.uint8)).squeeze()
+    img.save(path)
