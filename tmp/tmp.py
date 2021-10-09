@@ -25,8 +25,6 @@ def test_img():
 
 
 if __name__ == '__main__':
-    import time
-
-    t = time.time()
-    print(t)
-    print(int(t))
+    selec_index = np.random.choice(range(1330 - (0 + 1) * 5), 5, replace=False)
+    print(selec_index.shape[0])
+    print(selec_index)

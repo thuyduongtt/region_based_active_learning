@@ -15,7 +15,7 @@ import os
 import argparse
 import time
 from pathlib import Path
-from CONSTS import IM_WIDTH, IM_HEIGHT, IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, N_UNLABELED, training_data_path, MAX_RUN_COUNT, OUTPUT_DIR
+from CONSTS import *
 
 from visualization import plot_multi
 
@@ -121,8 +121,9 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         flag_arch_name = "resnet_v2_50"
         resnet_ckpt = os.path.join(resnet_dir, flag_arch_name) + '.ckpt'
 
-        total_active_step = 10
-        num_selec_point_from_pool = 5
+        num_selec_point_from_pool = N_SELECT
+        total_active_step = N_UNLABELED // num_selec_point_from_pool
+        total_accquired = 0
 
         acq_index_old = np.zeros([total_active_step, num_selec_point_from_pool])
         acq_method_total = ["A", "B", "C", "D"]
@@ -132,6 +133,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             acq_index_update = np.random.choice(range(N_UNLABELED), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
+
+        total_accquired += acq_index_update.shape[0]
 
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
         for acquire_single_step in range(total_active_step):
@@ -156,6 +159,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             print_log("The selected index", acq_index_old_sele, file_path=log_file_path)
             print_log("===================================================================================", file_path=log_file_path)
+            print_log('Total accquired:', total_accquired, '=====>', total_accquired / N_UNLABELED * 100)
 
             num_repeat_per_exp = 1  # Original: 3
             tot_train_val_stat_for_diff_exp_same_step = np.zeros(
@@ -267,6 +271,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                         data_path=training_data_path)
                 acq_index_update = selec_index[:, 0]
 
+            total_accquired += acq_index_update.shape[0]
             print_log('ACCQUIRE:', file_path=log_file_path)
             print_log(acquire_single_step, acq_index_update, np.shape(acq_index_update), file_path=log_file_path)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
