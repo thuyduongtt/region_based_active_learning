@@ -57,8 +57,7 @@ def running_train_use_all_data(version_space):
     for single_version in version_space:
         model_dir = os.path.join(exp_dir, 'Version_%d' % single_version)
         train_full(resnet_ckpt, acq_method, None, None, None, model_dir, epoch_size, decay_steps, epsilon_opt,
-                   batch_size,
-                   using_full_training_data)
+                   batch_size, using_full_training_data)
 
 
 def running_initial_model(version_space):
@@ -106,13 +105,14 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
     agg_method = "Simple_Sum"
     agg_quantile_cri = 0
-    if agg_method == "Simple_Sum":
+    if agg_method == "Simple_Sum" and N_SELECT == 5:
         acqu_index_all = np.zeros([3, 5])
         acqu_index_all[0, :] = [36, 34, 32, 57, 20]  # stage for B is 1, for D is 2, for F is 3
         acqu_index_all[1, :] = [36, 33, 34, 32, 57]
         acqu_index_all[2, :] = [45, 57, 33, 9, 30]
     else:
-        print_log("This acquisition method is on its way :) ", file_path=log_file_path)
+        # print_log("This acquisition method is on its way :) ", file_path=log_file_path)
+        acqu_index_all = None
 
     for single_round_number in round_number:
         total_folder_info = []
@@ -129,7 +129,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         acq_method_total = ["A", "B", "C", "D"]
         acq_selec_method = acq_method_total[stage]
 
-        if acq_selec_method == "A":
+        if acq_selec_method == "A" or N_SELECT > 5:
             acq_index_update = np.random.choice(range(N_UNLABELED), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
@@ -262,11 +262,14 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             total_folder_info.append(model_dir_goes_into_act_stage)
             tds_select = os.path.join(model_dir_goes_into_act_stage, 'pool_data')
 
+            # print(f'acq_index_old.shape: {acq_index_old.shape}')  # (10, 133)
+            # print(f'acq_index_old[acquire_single_step, :].shape: {acq_index_old[acquire_single_step, :].shape}')  # (133,)
+            # print(f'acq_index_update.shape: {acq_index_update.shape}')  # (5,)
+
             acq_index_old[acquire_single_step, :] = acq_index_update
             acq_index_rm = np.array(acq_index_old[:acquire_single_step + 1, :]).astype('int64')
             if acq_selec_method == "A":
-                selec_index = np.random.choice(range(N_UNLABELED - (acquire_single_step + 1) * num_selec_point_from_pool),
-                                               num_selec_point_from_pool, replace=False)
+                selec_index = np.random.choice(range(N_UNLABELED - (acquire_single_step + 1) * num_selec_point_from_pool), num_selec_point_from_pool, replace=False)
                 acq_index_update = selec_index
             else:
                 selec_index = selection(tds_select, model_dir_goes_into_act_stage,

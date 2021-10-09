@@ -14,7 +14,7 @@ import numpy as np
 
 
 def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_select_point_from_pool, agg_method,
-              agg_quantile_cri, data_path='/home/blia/Exp_Data/Data/glanddata.npy', save=False):
+              agg_quantile_cri, data_path, save=False):
     # --------Here lots of parameters need to be set------Or maybe we could set it in the configuration file-----#
     if save is True:
         if not os.path.exists(test_data_statistics_dir):
@@ -28,9 +28,11 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
     num_sample = 1
     num_sample_drop = 30
     Dropout_State = True
-    selec_training_index = np.zeros([2, 5])
-    selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
-    selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
+    selec_training_index = np.zeros([2, num_select_point_from_pool])
+    # selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
+    # selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
+    selec_training_index[0, :] = [0, 1, 2, 3, 4]
+    selec_training_index[1, :] = [2, 4, 5, 6, 7]
     selec_training_index = selec_training_index.astype('int64')
 
     with tf.Graph().as_default():
@@ -41,10 +43,8 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
         phase_train = tf.placeholder(tf.bool, shape=None, name="training_state")
         dropout_phase = tf.placeholder(tf.bool, shape=None, name="dropout_state")
 
-        data_train, data_pool, data_val = prepare_train_data(data_path, selec_training_index[0, :],
-                                                             selec_training_index[1, :])
-        x_image_pl, y_label_pl, y_edge_pl = padding_training_data(data_pool[0], data_pool[1], data_pool[2],
-                                                                  targ_height_npy, targ_width_npy)
+        data_train, data_pool, data_val = prepare_train_data(data_path, selec_training_index[0, :], selec_training_index[1, :])
+        x_image_pl, y_label_pl, y_edge_pl = padding_training_data(data_pool[0], data_pool[1], data_pool[2], targ_height_npy, targ_width_npy)
         print("The pooling data size %d" % np.shape(x_image_pl)[0])
         y_imindex_pl = np.array(data_pool[-2])
         y_clsindex_pl = np.array(data_pool[-1])
@@ -95,9 +95,9 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                 ed_prob_tot = []
                 fb_prob_tot = []
                 fb_prob_var_tot = []
-#                ed_prob_var_tot = []
+                #                ed_prob_var_tot = []
                 fb_bald_mean_tot = []
-#                ed_bald_mean_tot = []
+                #                ed_bald_mean_tot = []
 
                 num_image = np.shape(x_image_pl)[0]
                 for single_image in range(num_image):
@@ -116,22 +116,22 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                         single_fb_bald = _fb_prob * np.log(_fb_prob + 1e-08)
                         single_ed_bald = _ed_prob * np.log(_ed_prob + 1e-08)
                         fb_bald_per_image.append(single_fb_bald)
-#                        ed_bald_per_image.append(single_ed_bald)
+                        #                        ed_bald_per_image.append(single_ed_bald)
                         fb_prob_per_image.append(_fb_prob[0])
-#                        ed_prob_per_image.append(_ed_prob[0])
+                    #                        ed_prob_per_image.append(_ed_prob[0])
 
                     fb_pred = np.mean(fb_prob_per_image, axis=0)
-#                    ed_pred = np.mean(ed_prob_per_image, axis=0)
+                    #                    ed_pred = np.mean(ed_prob_per_image, axis=0)
 
                     fb_prob_tot.append(fb_pred)
-#                    ed_prob_tot.append(ed_pred)
+                    #                    ed_prob_tot.append(ed_pred)
                     fb_prob_var_tot.append(np.std(fb_prob_per_image, axis=0))
-#                    ed_prob_var_tot.append(np.std(ed_prob_per_image, axis=0))
+                    #                    ed_prob_var_tot.append(np.std(ed_prob_per_image, axis=0))
                     fb_bald_mean_tot.append(np.mean(fb_bald_per_image, axis=0))
-#                    ed_bald_mean_tot.append(np.mean(ed_bald_per_image, axis=0))
+                #                    ed_bald_mean_tot.append(np.mean(ed_bald_per_image, axis=0))
 
                 fb_bald_mean_tot = np.squeeze(np.array(fb_bald_mean_tot), axis=1)
-#                ed_bald_mean_tot = np.squeeze(np.array(ed_bald_mean_tot), axis=1)
+                #                ed_bald_mean_tot = np.squeeze(np.array(ed_bald_mean_tot), axis=1)
                 print("Using seletion method", acqu_method)
                 acqu_method_index = 0
                 for single_acqu_method in acqu_method:
