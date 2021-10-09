@@ -139,7 +139,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
         for acquire_single_step in range(total_active_step):
-            print_log(f'====================================\n===== AL iteration: {acquire_single_step} =====\n====================================', file_path=log_file_path)
+            print_log(f'====================================\n===== AL iteration: {acquire_single_step + 1} / {total_active_step} =====\n====================================', file_path=log_file_path)
 
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
@@ -325,9 +325,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
     auxi_weight_num = 1
     auxi_decay_step = 300
     val_step_size = 10
-    selec_training_index = np.zeros([2, 5])
-    selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
-    selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
+    selec_training_index = np.zeros([2, N_SELECT])
+    # selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
+    # selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
+    selec_training_index[0, :] = np.arange(N_SELECT).tolist()
+    selec_training_index[1, :] = np.arange(N_SELECT).tolist()
     selec_training_index = selec_training_index.astype('int64')
 
     checkpoint_path = os.path.join(model_dir, 'model.ckpt')

@@ -31,8 +31,8 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
     selec_training_index = np.zeros([2, num_select_point_from_pool])
     # selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
     # selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
-    selec_training_index[0, :] = [0, 1, 2, 3, 4]
-    selec_training_index[1, :] = [2, 4, 5, 6, 7]
+    selec_training_index[0, :] = np.arange(num_select_point_from_pool).tolist()
+    selec_training_index[1, :] = np.arange(num_select_point_from_pool).tolist()
     selec_training_index = selec_training_index.astype('int64')
 
     with tf.Graph().as_default():
