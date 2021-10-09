@@ -137,7 +137,10 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         total_accquired += acq_index_update.shape[0]
 
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
+
         for acquire_single_step in range(total_active_step):
+            print_log(f'====================================\n===== AL iteration: {acquire_single_step} =====\n====================================', file_path=log_file_path)
+
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
             if acq_index_update is not None:
@@ -159,7 +162,6 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             print_log("The selected index", acq_index_old_sele, file_path=log_file_path)
             print_log("===================================================================================", file_path=log_file_path)
-            print_log('Total accquired:', total_accquired, '=====>', total_accquired / N_UNLABELED * 100)
 
             num_repeat_per_exp = 1  # Original: 3
             tot_train_val_stat_for_diff_exp_same_step = np.zeros(
@@ -206,18 +208,20 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                             print_log("--------------------The model start from a really bad optimal----------------", file_path=log_file_path)
                         else:
                             signal_for_bad_optimal = True
-                    train_full(resnet_ckpt=resnet_ckpt,
-                               acq_method=acq_selec_method,
-                               acq_index_old=acq_index_old_sele,
-                               acq_index_update=acq_index_update,
-                               ckpt_dir=model_dir_sub,
-                               model_dir=model_dir_sub,
-                               epoch_size=max_epoch_single,
-                               decay_steps=decay_steps_single,
-                               epsilon_opt=epsilon_opt,
-                               batch_size=batch_size_spec,
-                               using_full_training_data=False,
-                               flag_pretrain=True)
+
+                    train_results, val_results = train_full(resnet_ckpt=resnet_ckpt,
+                                                            acq_method=acq_selec_method,
+                                                            acq_index_old=acq_index_old_sele,
+                                                            acq_index_update=acq_index_update,
+                                                            ckpt_dir=model_dir_sub,
+                                                            model_dir=model_dir_sub,
+                                                            epoch_size=max_epoch_single,
+                                                            decay_steps=decay_steps_single,
+                                                            epsilon_opt=epsilon_opt,
+                                                            batch_size=batch_size_spec,
+                                                            using_full_training_data=False,
+                                                            flag_pretrain=True)
+
                     train_stat = np.load(os.path.join(model_dir_sub, 'trainstat.npy'))
                     val_stat = np.load(os.path.join(model_dir_sub, 'valstat.npy'))
                     first_cri = [np.mean(train_stat[-20:, -1]), np.mean(val_stat[-10:, -1])]  # ed loss
@@ -238,7 +242,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                         all_the_files = os.listdir(model_dir_sub)
                         for single_file in all_the_files:
                             os.remove(os.path.join(model_dir_sub, single_file))
-                        print_log("mmm The trained model doesn't work, I need to retrain it...", file_path=log_file_path)
+                        print_log(f"[{repeat_time}] mmm The trained model doesn't work, I need to retrain it...", file_path=log_file_path)
                     if signal is True:
                         tot_train_val_stat_for_diff_exp_same_step[repeat_time, :] = [np.mean(fourth_cri),
                                                                                      np.mean(first_cri),
@@ -270,6 +274,13 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                         num_selec_point_from_pool, agg_method, agg_quantile_cri,
                                         data_path=training_data_path)
                 acq_index_update = selec_index[:, 0]
+
+            print_log(f'TOTAL ACCQUIRED: {total_accquired} =====> {total_accquired / N_UNLABELED * 100:.0f}%', file_path=log_file_path)
+            plot_multi([train_results['loss'], train_results['f1']], 'Loss & F1 Score during Training',
+                       labels=['Loss', 'F1'], output_dir='output', output_name=f'{acquire_single_step}_loss_f1', ylabel='value')
+            plot_multi([val_results['f1'], val_results['accuracy'], val_results['precision'], val_results['recall'], val_results['jaccard']],
+                       'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
+                       output_dir='output', output_name=f'{acquire_single_step}_val_scores', ylabel='value')
 
             total_accquired += acq_index_update.shape[0]
             print_log('ACCQUIRE:', file_path=log_file_path)
@@ -535,7 +546,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 train_stats['loss'].append(train_tot_stat[single_epoch, 0])
                 train_stats['f1'].append(train_tot_stat[single_epoch, 1])
                 plot_multi([train_stats['loss'], train_stats['f1']], 'Loss & F1 Score during Training',
-                           labels=['Loss', 'F1'], output_dir='output', output_name='loss_f1', ylabel='value')
+                           labels=['Loss', 'F1'], output_dir='output', output_name='current_loss_f1', ylabel='value')
 
                 if single_epoch % val_step_size == 0:
                     val_iteration = np.shape(x_image_val)[0] // batch_size
@@ -587,7 +598,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
                     plot_multi([val_stats['f1'], val_stats['accuracy'], val_stats['precision'], val_stats['recall'], val_stats['jaccard']],
                                'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
-                               output_dir='output', output_name='val_scores', ylabel='value')
+                               output_dir='output', output_name='current_val_scores', ylabel='value')
 
                 if single_epoch % save_checkpoint_period == 0 or single_epoch == (epoch_size - 1):
                     saver_set_all.save(sess, checkpoint_path, global_step=single_epoch)
@@ -597,6 +608,8 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
 
                 log_file.close()
+
+    return train_stats, val_stats
 
 
 def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_score, log_file):

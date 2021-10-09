@@ -20,5 +20,5 @@ N_SELECT = 133
 training_data_path = "DATA/Data/QB.npy"
 test_data_path = "DATA/Data/QB_test_benign.npy"
 
-MAX_RUN_COUNT = 10
+MAX_RUN_COUNT = 1
 OUTPUT_DIR = 'output'
