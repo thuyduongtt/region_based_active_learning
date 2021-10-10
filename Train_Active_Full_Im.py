@@ -29,16 +29,18 @@ def print_log(*content, file=None, file_path=None):
             print(*content, file=f)
 
 
-print("--------------------------------------------------------------")
-print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
-print("--------------------------------------------------------------")
+# print("--------------------------------------------------------------")
+# print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
+# print("--------------------------------------------------------------")
 # training_data_path = "DATA/Data/QB.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 # test_data_path = "DATA/Data/QB_test_benign.npy"  # NOTE, NEED TO BE MANUALLY DEFINED
 resnet_dir = "pretrain_model/"
 exp_dir = "Exp_Stat/"  # NOTE, NEED TO BE MANUALLY DEFINED
-print("--------------------------------------------------------------")
-print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
-print("--------------------------------------------------------------")
+
+
+# print("--------------------------------------------------------------")
+# print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
+# print("--------------------------------------------------------------")
 
 
 def running_train_use_all_data(version_space):
@@ -139,7 +141,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
         for acquire_single_step in range(total_active_step):
-            print_log(f'====================================\n===== AL iteration: {acquire_single_step + 1} / {total_active_step} =====\n====================================', file_path=log_file_path)
+            print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path)
 
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
@@ -161,14 +163,13 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                 acq_index_old_sele = acq_index_old[:acquire_single_step, :]
 
             print_log("The selected index", acq_index_old_sele, file_path=log_file_path)
-            print_log("===================================================================================", file_path=log_file_path)
 
             num_repeat_per_exp = 1  # Original: 3
             tot_train_val_stat_for_diff_exp_same_step = np.zeros(
                 [num_repeat_per_exp, 4])  # fb loss, ed loss, fb f1 score, fb auc score
 
             for repeat_time in range(num_repeat_per_exp):
-                print_log("==============Start Experiment No.%d============================================" % repeat_time, file_path=log_file_path)
+                print_log("===== Start Experiment No.%d =====" % repeat_time, file_path=log_file_path)
                 model_dir_sub = os.path.join(model_dir, 'rep_%d' % repeat_time)
                 signal = False
 
@@ -176,11 +177,6 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
                 while signal is False:
                     run_count += 1
-
-                    # break if in case too many rounds
-                    if run_count > MAX_RUN_COUNT:
-                        print_log('MAX_RUN_COUNT has been reached, loop is terminated !!!', file_path=log_file_path)
-                        break
 
                     signal_for_bad_optimal = False
                     while signal_for_bad_optimal is False:
@@ -234,20 +230,28 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                     third_mean = np.mean(thir_cri)
                     fourth_mean = np.mean(fourth_cri)
                     if first_mean >= 0.50 or second_mean <= 0.80 or third_mean <= 0.80 or fourth_mean > 0.50:
-                        print_log(f'first_mean: {first_mean}, second_mean: {second_mean}, third_mean: {third_mean}, fourth_mean: {fourth_mean}', file_path=log_file_path)
+                        print_log(f'first_mean: {first_mean:.4f}, second_mean: {second_mean:.4f}, third_mean: {third_mean:.4f}, fourth_mean: {fourth_mean:.4f}', file_path=log_file_path)
                         signal = False
                     else:
                         signal = True
+
+                    # break if in case too many rounds
+                    if run_count >= MAX_RUN_COUNT and not signal:
+                        print_log('MAX_RUN_COUNT has been reached, loop is terminated !!!', file_path=log_file_path)
+                        signal = True
+
                     if signal is False:
                         all_the_files = os.listdir(model_dir_sub)
                         for single_file in all_the_files:
                             os.remove(os.path.join(model_dir_sub, single_file))
                         print_log(f"[{repeat_time}] mmm The trained model doesn't work, I need to retrain it...", file_path=log_file_path)
+
                     if signal is True:
                         tot_train_val_stat_for_diff_exp_same_step[repeat_time, :] = [np.mean(fourth_cri),
                                                                                      np.mean(first_cri),
                                                                                      np.mean(sec_cri),
                                                                                      np.mean(thir_cri)]
+
                 print_log("=============Finish Experiment No.%d===================" % repeat_time, file_path=log_file_path)
 
             # ------Below is for selecting the best experiment based on the training and validation statistics-----#
@@ -268,6 +272,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             acq_index_old[acquire_single_step, :] = acq_index_update
             acq_index_rm = np.array(acq_index_old[:acquire_single_step + 1, :]).astype('int64')
+
             if acq_selec_method == "A":
                 selec_index = np.random.choice(range(N_UNLABELED // 2 - (acquire_single_step + 1) * num_selec_point_from_pool), num_selec_point_from_pool, replace=False)
                 acq_index_update = selec_index
@@ -287,7 +292,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             total_accquired += acq_index_update.shape[0]
             print_log('ACCQUIRE:', file_path=log_file_path)
-            print_log(acquire_single_step, acq_index_update, np.shape(acq_index_update), file_path=log_file_path)
+            print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file_path=log_file_path)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
@@ -383,8 +388,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     x_tr_group[i] = np.concatenate([x_tr_group[i], x_pl_group[i][image_index_add_to_tr]], axis=0)
                     x_pl_group[i] = x_pl_group[i][images_index_left]
                 print_log("the removed images' index", acq_index_old[remove_data, :], file=log_file)
-                print_log("there are %d training images and %d pool images after %d step" % (np.shape(x_tr_group[0], file=log_file)[0],
-                                                                                             np.shape(x_pl_group[0])[0], remove_data + 1), file=log_file)
+                print_log("there are %d training images and %d pool images after %d step" % (np.shape(x_tr_group[0])[0], np.shape(x_pl_group[0])[0], remove_data + 1), file=log_file)
         if acq_index_update is not None:
             for i in range(5):
                 x_tr_group[i] = np.concatenate([x_tr_group[i], x_pl_group[i][acq_index_update]], axis=0)
@@ -630,4 +634,4 @@ if __name__ == '__main__':
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
     args = parser.parse_args()
 
-    running_loop_active_learning_full_image(args.stage)
+    running_loop_active_learning_full_image(args.stage, round_number=[0])
