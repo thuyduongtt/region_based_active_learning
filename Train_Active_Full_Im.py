@@ -130,7 +130,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         acq_selec_method = acq_method_total[stage]
 
         if acq_selec_method == "A" or N_SELECT > 5:
-            acq_index_update = np.random.choice(range(N_UNLABELED), num_selec_point_from_pool, replace=False)
+            acq_index_update = np.random.choice(range(N_UNLABELED // 2), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
 
@@ -269,7 +269,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             acq_index_old[acquire_single_step, :] = acq_index_update
             acq_index_rm = np.array(acq_index_old[:acquire_single_step + 1, :]).astype('int64')
             if acq_selec_method == "A":
-                selec_index = np.random.choice(range(N_UNLABELED - (acquire_single_step + 1) * num_selec_point_from_pool), num_selec_point_from_pool, replace=False)
+                selec_index = np.random.choice(range(N_UNLABELED // 2 - (acquire_single_step + 1) * num_selec_point_from_pool), num_selec_point_from_pool, replace=False)
                 acq_index_update = selec_index
             else:
                 selec_index = selection(tds_select, model_dir_goes_into_act_stage,
