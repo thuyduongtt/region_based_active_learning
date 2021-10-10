@@ -618,11 +618,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
 
 def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_score, log_file):
-    print_log('f1:', f1, file=log_file)
-    print_log('accuracy_score:', accuracy_score, file=log_file)
-    print_log('precision_score:', precision_score, file=log_file)
-    print_log('recall_score:', recall_score, file=log_file)
-    print_log('jaccard_score:', jaccard_score, file=log_file)
+    print_log(f'f1: {f1:.4f}', file=log_file)
+    print_log(f'accuracy_score: {accuracy_score:.4f}', file=log_file)
+    print_log(f'precision_score: {precision_score:.4f}', file=log_file)
+    print_log(f'recall_score: {recall_score:.4f}', file=log_file)
+    print_log(f'jaccard_score: {jaccard_score:.4f}', file=log_file)
 
 
 if __name__ == '__main__':

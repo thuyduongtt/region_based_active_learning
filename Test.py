@@ -5,12 +5,13 @@ This file is for testing the already trained active learning model
 @author: s161488
 """
 import tensorflow as tf
+
+from CONSTS import IM_PAD_HEIGHT, IM_PAD_WIDTH, IM_CHANNEL
 from data_utils.prepare_data import padding_training_data, prepare_test_data
 from models.inference import ResNet_V2_DMNN
 import os
 import numpy as np
 import scipy.io as sio
-
 
 print("--------------------------------------------------------------")
 print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
@@ -55,6 +56,8 @@ def running_test_for_all_acquisition_steps(path_input, version_use, start_step, 
                 os.makedirs(test_data_statistics_dir)
             test_data_path = os.path.join(data_home, data_name_single)
             test(test_data_statistics_dir, ckpt_to_read, test_data_path, save_stat=True)
+
+
 #            save_image_to_mat(test_data_statistics_dir, test_data_path)
 
 
@@ -77,6 +80,8 @@ def running_test_for_single_acquisition_step(model_dir):
             os.makedirs(test_data_statistics_dir)
         test_data_path = os.path.join(data_home, data_name_single)
         test(test_data_statistics_dir, model_dir, test_data_path, save_stat=True)
+
+
 #        save_image_to_mat(test_data_statistics_dir, test_data_path)
 
 
@@ -90,10 +95,10 @@ def test(test_data_statistics_dir, ckpt_dir, test_data_path, save_stat=True):
     """
     # --------Here lots of parameters need to be set------Or maybe we could set it in the configuration file-----#
     batch_size = 1
-    targ_height_npy = 528  # this is for padding images
-    targ_width_npy = 784  # this is for padding images
+    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
+    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
     ckpt_dir = ckpt_dir
-    image_c = 3
+    image_c = IM_CHANNEL
     MOVING_AVERAGE_DECAY = 0.999
     check_effect_of_dropout_iter = False
     #  if check_effect_of_dropout_iter is True, then the goal is to find a good number of dropout times which can
@@ -192,8 +197,8 @@ def test(test_data_statistics_dir, ckpt_dir, test_data_path, save_stat=True):
 
 def save_image_to_mat(test_data_statistics_dir, test_data_path):
     """"This function saves the npy stat into mat stat in order to evaluate the segmentation accuracy in Matlab"""
-    targ_height_npy = 528  # this is for padding images
-    targ_width_npy = 784  # this is for padding images
+    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
+    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
     x_im_group = prepare_test_data(test_data_path)
     x_image_val, y_label_val, y_edge_val = padding_training_data(x_im_group[0], x_im_group[1], x_im_group[2],
                                                                  targ_height_npy, targ_width_npy)

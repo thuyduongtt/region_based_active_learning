@@ -8,6 +8,8 @@ from scipy.signal import savgol_filter
 import pandas as pd
 import argparse
 
+from CONSTS import IM_PAD_HEIGHT, IM_PAD_WIDTH
+
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -298,13 +300,13 @@ def load_score(path_specific, score_str, region_or_full):
     if region_or_full is "region":
         query_stat = np.load(path_name[0] + "_query_stat.npy")[:num_step]
     else:
-        num_pixel = np.ones([num_step]) * (528 * 784 * 5)
+        num_pixel = np.ones([num_step]) * (IM_PAD_HEIGHT * IM_PAD_WIDTH * 5)
         num_images = np.ones([num_step]) * 5
         query_stat = np.zeros([num_step, 2])
         query_stat[:, 0] = np.cumsum(num_pixel)
         query_stat[:, 1] = np.cumsum(num_images) + 10
 
-    percent_pixel = query_stat[:, 0] / (75 * 528 * 784) + (10 / 75)
+    percent_pixel = query_stat[:, 0] / (75 * IM_PAD_HEIGHT * IM_PAD_WIDTH) + (10 / 75)
     if score_str is "bri_decompose_score":
         score_use = [v[:, [2, 5, 8]] for v in score_use]
     return score_use, percent_pixel

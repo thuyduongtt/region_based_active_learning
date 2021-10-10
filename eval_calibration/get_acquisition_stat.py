@@ -1,5 +1,7 @@
 import numpy as np
 import os
+
+from CONSTS import IM_PAD_HEIGHT, IM_PAD_WIDTH
 from select_regions import selection as SPR_Region_Im
 from data_utils.update_data import give_init_train_and_val_data, update_training_data, prepare_the_new_uncertain_input
 import pickle
@@ -47,7 +49,7 @@ def collect_number_acquired_pixels_region(path_input, total_select_folder_init, 
                 pickle.dump(most_uncert, f)
 
         num_of_pixels_need_to_be_annotate[single_acq_step] = np.sum(np.reshape(most_uncert_old[-2], [-1]))
-        percent_pixel_to_be_annotate = num_of_pixels_need_to_be_annotate[single_acq_step] / (528 * 784 * 5)
+        percent_pixel_to_be_annotate = num_of_pixels_need_to_be_annotate[single_acq_step] / (IM_PAD_HEIGHT * IM_PAD_WIDTH * 5)
         num_im = np.shape(updated_training_data[0])[0]
         num_of_images_per_step[single_acq_step] = num_im
         model_dir_goes_into_act_stage = total_select_folder[single_acq_step]
@@ -70,4 +72,3 @@ def collect_number_acquired_pixels_region(path_input, total_select_folder_init, 
             single_acq_step, num_im, percent_pixel_to_be_annotate))
     np.save(os.path.join(path_mom, 'num_of_image'), num_of_images_per_step)
     np.save(os.path.join(path_mom, 'num_of_pixel'), num_of_pixels_need_to_be_annotate)
-

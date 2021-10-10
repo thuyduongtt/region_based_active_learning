@@ -6,6 +6,8 @@ This file is for selecting the most uncertain images in each acquisition step ba
 """
 
 import tensorflow as tf
+
+from CONSTS import IM_PAD_HEIGHT, IM_PAD_WIDTH, IM_CHANNEL
 from data_utils.prepare_data import padding_training_data, prepare_train_data
 from models.inference import ResNet_V2_DMNN
 from models.acquistion_full_image import extract_informative_index
@@ -20,10 +22,10 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
         if not os.path.exists(test_data_statistics_dir):
             os.makedirs(test_data_statistics_dir)
     batch_size = 1
-    targ_height_npy = 528  # this is for padding images
-    targ_width_npy = 784  # this is for padding images
+    targ_height_npy = IM_PAD_HEIGHT  # this is for padding images
+    targ_width_npy = IM_PAD_WIDTH  # this is for padding images
     ckpt_dir = ckpt_dir
-    image_c = 3
+    image_c = IM_CHANNEL
     MOVING_AVERAGE_DECAY = 0.999
     num_sample = 1
     num_sample_drop = 30
