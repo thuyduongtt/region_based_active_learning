@@ -43,11 +43,6 @@ def prepare_train_data(path, select_benign_train, select_mali_train):
     benign_index = np.where(np.array(classindex) == 1)[0]
     mali_index = np.where(np.array(classindex) == 2)[0]
 
-    # print('benign_index')
-    # print(benign_index)  # even indices
-    # print('mali_index')
-    # print(mali_index)  # odd indices
-
     choose_index_tr = np.concatenate([benign_index[select_benign_train], mali_index[select_mali_train]], axis=0)
     data_train = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_tr)
 

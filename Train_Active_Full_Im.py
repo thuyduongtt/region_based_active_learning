@@ -125,7 +125,6 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
         num_selec_point_from_pool = N_SELECT
         total_active_step = N_UNLABELED // num_selec_point_from_pool
-        total_accquired = 0
 
         acq_index_old = np.zeros([total_active_step, num_selec_point_from_pool])
         acq_method_total = ["A", "B", "C", "D"]
@@ -135,8 +134,6 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             acq_index_update = np.random.choice(range(N_UNLABELED // 2), num_selec_point_from_pool, replace=False)
         else:
             acq_index_update = acqu_index_init_total[stage - 1, -num_selec_point_from_pool:]
-
-        total_accquired += acq_index_update.shape[0]
 
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
@@ -283,14 +280,12 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                         data_path=training_data_path)
                 acq_index_update = selec_index[:, 0]
 
-            print_log(f'TOTAL ACCQUIRED: {total_accquired} =====> {total_accquired / N_UNLABELED * 100:.0f}%', file_path=log_file_path)
             plot_multi([train_results['loss'], train_results['f1']], 'Loss & F1 Score during Training',
                        labels=['Loss', 'F1'], output_dir='output', output_name=f'{acquire_single_step}_loss_f1', ylabel='value')
             plot_multi([val_results['f1'], val_results['accuracy'], val_results['precision'], val_results['recall'], val_results['jaccard']],
                        'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
                        output_dir='output', output_name=f'{acquire_single_step}_val_scores', ylabel='value')
 
-            total_accquired += acq_index_update.shape[0]
             print_log('ACCQUIRE:', file_path=log_file_path)
             print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file_path=log_file_path)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
@@ -459,7 +454,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
         log_file = open(log_file_path, 'a')
         print_log("\n=====================================================", file=log_file)
-        print_log("The shape of new training data", np.shape(x_image_tr)[0], file=log_file)
+        print_log(f"The shape of new training data: {np.shape(x_image_tr)[0]} ===> {np.shape(x_image_tr)[0] / N_UNLABELED * 100:.0f}%", file=log_file)
         print_log("The final validation data size %d" % np.shape(x_image_val)[0], file=log_file)
         print_log("There are %d iteratioins in each epoch" % iteration, file=log_file)
         print_log("ckpt files are saved to: ", model_dir, file=log_file)
