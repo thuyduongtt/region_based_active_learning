@@ -10,7 +10,7 @@ import tensorflow.compat.v1 as tf
 from tensorflow.contrib import image as contrib_image
 import cv2
 
-from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT
+from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
 
 path_mom = "DATA/"  # NOTE, NEED TO BE MANUALLY DEFINED
 
@@ -131,7 +131,7 @@ def generate_batch(x_image_tr, y_label_tr, y_edge_tr, y_binary_mask_tr, batch_in
     return im_batch[0], im_batch[1], im_batch[2], im_batch[3], batch_index
 
 
-def padding_training_data(x_image, y_label, y_edge, target_height, target_width, n_channels=3):
+def padding_training_data(x_image, y_label, y_edge, target_height, target_width):
     """Each image has different size, so I need to pad it with zeros to make sure each image has the same size.
        Then I can perform random crop, rotation and other augmentation on per batch instead of per image
     """
@@ -142,7 +142,7 @@ def padding_training_data(x_image, y_label, y_edge, target_height, target_width,
         x_im_pad.append(image_pad)
         y_la_pad.append(label_pad)
         y_ed_pad.append(edge_pad)
-    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, n_channels])
+    x_im_pad = np.reshape(x_im_pad, [num_image, target_height, target_width, IM_CHANNEL])
     y_la_pad = np.reshape(y_la_pad, [num_image, target_height, target_width, 1])
     y_ed_pad = np.reshape(y_ed_pad, [num_image, target_height, target_width, 1])
     return x_im_pad, y_la_pad, y_ed_pad
@@ -169,7 +169,7 @@ def extract_diff_data(image, label, edge, im_index, cls_index, choose_index):
     return new_data[0], new_data[1], new_data[2], new_data[3], new_data[4]
 
 
-def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape, image_channel=3):
+def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
     """This function is used for performing data augmentation. 
     image: placeholder. shape: [Batch_Size, im_h, im_w, 3], tf.float32
     label: placeholder. shape: [Batch_Size, im_h, im_w, 1], tf.int64
@@ -189,23 +189,23 @@ def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape, im
     target_height = imshape[0].astype('int32')
     target_width = imshape[1].astype('int32')
     if aug is True:
-        bigmatrix_crop = tf.random_crop(bigmatrix, size=[batch_size, target_height, target_width, image_channel + 3])
-        bigmatrix_crop = tf.cond(tf.less_equal(tf.reduce_sum(bigmatrix_crop[:, :, :, image_channel + 2]), 10),
+        bigmatrix_crop = tf.random_crop(bigmatrix, size=[batch_size, target_height, target_width, IM_CHANNEL + 3])
+        bigmatrix_crop = tf.cond(tf.less_equal(tf.reduce_sum(bigmatrix_crop[:, :, :, IM_CHANNEL + 2]), 10),
                                  lambda: tf.image.resize_image_with_crop_or_pad(bigmatrix, target_height, target_width),
                                  lambda: bigmatrix_crop)
         # instead of judging by label, should do it by the binary mask!
         k = tf.random_uniform(shape=[batch_size], minval=0, maxval=6.5, dtype=tf.float32)
         bigmatrix_rot = contrib_image.rotate(bigmatrix_crop, angles=k)
-        image_aug = tf.cast(bigmatrix_rot[:, :, :, 0:image_channel], tf.float32)
-        label_aug = bigmatrix_rot[:, :, :, image_channel]
-        edge_aug = bigmatrix_rot[:, :, :, image_channel + 1]
-        binary_mask_aug = bigmatrix_rot[:, :, :, image_channel + 2]
+        image_aug = tf.cast(bigmatrix_rot[:, :, :, 0:IM_CHANNEL], tf.float32)
+        label_aug = bigmatrix_rot[:, :, :, IM_CHANNEL]
+        edge_aug = bigmatrix_rot[:, :, :, IM_CHANNEL + 1]
+        binary_mask_aug = bigmatrix_rot[:, :, :, IM_CHANNEL + 2]
     else:
         bigmatrix_rot = tf.image.resize_image_with_crop_or_pad(bigmatrix, target_height, target_width)
-        image_aug = tf.cast(tf.cast(bigmatrix_rot[:, :, :, 0:image_channel], tf.uint8), tf.float32)
-        label_aug = tf.cast(bigmatrix_rot[:, :, :, image_channel], tf.int64)
-        edge_aug = tf.cast(bigmatrix_rot[:, :, :, image_channel + 1], tf.int64)
-        binary_mask_aug = tf.cast(bigmatrix_rot[:, :, :, image_channel + 2], tf.int64)
+        image_aug = tf.cast(tf.cast(bigmatrix_rot[:, :, :, 0:IM_CHANNEL], tf.uint8), tf.float32)
+        label_aug = tf.cast(bigmatrix_rot[:, :, :, IM_CHANNEL], tf.int64)
+        edge_aug = tf.cast(bigmatrix_rot[:, :, :, IM_CHANNEL + 1], tf.int64)
+        binary_mask_aug = tf.cast(bigmatrix_rot[:, :, :, IM_CHANNEL + 2], tf.int64)
     return image_aug, tf.expand_dims(label_aug, -1), tf.expand_dims(edge_aug, -1), tf.expand_dims(binary_mask_aug, -1)
 
 

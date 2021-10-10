@@ -250,11 +250,11 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
                                                                                  label_aug_placeholder,
                                                                                  edge_aug_placeholder,
                                                                                  binary_mask_aug_placeholder,
-                                                                                 batch_size, True, IMAGE_SHAPE, image_channel=image_c)
+                                                                                 batch_size, True, IMAGE_SHAPE)
         x_image_aug_val, y_label_aug_val, y_edge_aug_val, \
         y_binary_mask_aug_val = aug_train_data(image_aug_placeholder, label_aug_placeholder,
                                                edge_aug_placeholder, binary_mask_aug_placeholder,
-                                               batch_size, False, IMAGE_SHAPE, image_channel=image_c)
+                                               batch_size, False, IMAGE_SHAPE)
 
         # ------------------------------Here is for build up the network-------------------------------------------#
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,

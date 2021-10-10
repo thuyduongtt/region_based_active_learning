@@ -101,7 +101,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
     log_file_path = f'{OUTPUT_DIR}/log.txt'
 
     with open(log_file_path, 'w') as log_file:
-        log_file.write(f'====== START TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
+        print_log(f'====== START TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======', file=log_file)
 
     agg_method = "Simple_Sum"
     agg_quantile_cri = 0
@@ -362,7 +362,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
         for iterr, single_im_group in enumerate(im_group):
             single_group_new = padding_training_data(single_im_group[0], single_im_group[1], single_im_group[2],
-                                                     targ_height_npy, targ_width_npy, image_c)
+                                                     targ_height_npy, targ_width_npy)
             im_group[iterr] = single_group_new
 
         x_tr_group = [im_group[0][0], im_group[0][1], im_group[0][2], y_imindex_tr, y_clsindex_tr]
@@ -408,12 +408,12 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         # ----------Perform data augmentation only on training data-----------------------------------------#
         x_image_aug, y_label_aug, y_edge_aug, _ = aug_train_data(image_aug_placeholder, label_aug_placeholder,
                                                                  edge_aug_placeholder, bi_mask_tr,
-                                                                 batch_size, True, image_shape, image_channel=image_c)
+                                                                 batch_size, True, image_shape)
         x_image_aug_val, y_label_aug_val, y_edge_aug_val, _ = aug_train_data(image_aug_placeholder,
                                                                              label_aug_placeholder,
                                                                              edge_aug_placeholder, bi_mask_val,
                                                                              batch_size, True,
-                                                                             image_shape, image_channel=image_c)
+                                                                             image_shape)
 
         # ------------------------------Here is for build up the network----------------------------------#
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,
