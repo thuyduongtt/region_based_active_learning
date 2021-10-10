@@ -138,7 +138,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
         for acquire_single_step in range(total_active_step):
-            print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path)
+            log_file_path_iter = f'{OUTPUT_DIR}/log_{acquire_single_step}.txt'
+            print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path_iter)
 
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
@@ -159,14 +160,14 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             else:
                 acq_index_old_sele = acq_index_old[:acquire_single_step, :]
 
-            print_log("The selected index", acq_index_old_sele, file_path=log_file_path)
+            print_log("The selected index", acq_index_old_sele, file_path=log_file_path_iter)
 
             num_repeat_per_exp = 1  # Original: 3
             tot_train_val_stat_for_diff_exp_same_step = np.zeros(
                 [num_repeat_per_exp, 4])  # fb loss, ed loss, fb f1 score, fb auc score
 
             for repeat_time in range(num_repeat_per_exp):
-                print_log("===== Start Experiment No.%d =====" % repeat_time, file_path=log_file_path)
+                print_log("===== Start Experiment No.%d =====" % repeat_time, file_path=log_file_path_iter)
                 model_dir_sub = os.path.join(model_dir, 'rep_%d' % repeat_time)
                 signal = False
 
@@ -188,7 +189,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                    epsilon_opt=epsilon_opt,
                                    batch_size=batch_size_spec,
                                    using_full_training_data=False,
-                                   flag_pretrain=False)
+                                   flag_pretrain=False,
+                                   log_file_path=log_file_path_iter)
                         train_stat = np.load(os.path.join(model_dir_sub, 'trainstat.npy'))
                         val_stat = np.load(os.path.join(model_dir_sub, 'valstat.npy'))
                         sec_cri = [np.mean(train_stat[-10:, 1]), np.mean(val_stat[-1, 1])]  # fb f1 score
@@ -198,7 +200,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                             all_the_files = os.listdir(model_dir_sub)
                             for single_file in all_the_files:
                                 os.remove(os.path.join(model_dir_sub, single_file))
-                            print_log("--------------------The model start from a really bad optimal----------------", file_path=log_file_path)
+                            print_log("--------------------The model start from a really bad optimal----------------", file_path=log_file_path_iter)
                         else:
                             signal_for_bad_optimal = True
 
@@ -213,7 +215,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                                             epsilon_opt=epsilon_opt,
                                                             batch_size=batch_size_spec,
                                                             using_full_training_data=False,
-                                                            flag_pretrain=True)
+                                                            flag_pretrain=True,
+                                                            log_file_path=log_file_path_iter)
 
                     train_stat = np.load(os.path.join(model_dir_sub, 'trainstat.npy'))
                     val_stat = np.load(os.path.join(model_dir_sub, 'valstat.npy'))
@@ -227,21 +230,21 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                     third_mean = np.mean(thir_cri)
                     fourth_mean = np.mean(fourth_cri)
                     if first_mean >= 0.50 or second_mean <= 0.80 or third_mean <= 0.80 or fourth_mean > 0.50:
-                        print_log(f'first_mean: {first_mean:.4f}, second_mean: {second_mean:.4f}, third_mean: {third_mean:.4f}, fourth_mean: {fourth_mean:.4f}', file_path=log_file_path)
+                        print_log(f'first_mean: {first_mean:.4f}, second_mean: {second_mean:.4f}, third_mean: {third_mean:.4f}, fourth_mean: {fourth_mean:.4f}', file_path=log_file_path_iter)
                         signal = False
                     else:
                         signal = True
 
                     # break if in case too many rounds
                     if run_count >= MAX_RUN_COUNT and not signal:
-                        print_log('MAX_RUN_COUNT has been reached, loop is terminated !!!', file_path=log_file_path)
+                        print_log('MAX_RUN_COUNT has been reached, loop is terminated !!!', file_path=log_file_path_iter)
                         signal = True
 
                     if signal is False:
                         all_the_files = os.listdir(model_dir_sub)
                         for single_file in all_the_files:
                             os.remove(os.path.join(model_dir_sub, single_file))
-                        print_log(f"[{repeat_time}] mmm The trained model doesn't work, I need to retrain it...", file_path=log_file_path)
+                        print_log(f"[{repeat_time}] mmm The trained model doesn't work, I need to retrain it...", file_path=log_file_path_iter)
 
                     if signal is True:
                         tot_train_val_stat_for_diff_exp_same_step[repeat_time, :] = [np.mean(fourth_cri),
@@ -249,7 +252,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                                                                      np.mean(sec_cri),
                                                                                      np.mean(thir_cri)]
 
-                print_log("=============Finish Experiment No.%d===================" % repeat_time, file_path=log_file_path)
+                print_log("=============Finish Experiment No.%d===================" % repeat_time, file_path=log_file_path_iter)
 
             # ------Below is for selecting the best experiment based on the training and validation statistics-----#
             fb_loss_index = np.argmin(tot_train_val_stat_for_diff_exp_same_step[:, 0])
@@ -259,7 +262,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             perf_comp = [fb_loss_index, ed_loss_index, fb_f1_index, fb_auc_index]
             best_per_index = max(set(perf_comp), key=perf_comp.count)
             model_dir_goes_into_act_stage = os.path.join(model_dir, 'rep_%d' % best_per_index)
-            print_log("The selected folder", model_dir_goes_into_act_stage, file_path=log_file_path)
+            print_log("The selected folder", model_dir_goes_into_act_stage, file_path=log_file_path_iter)
             total_folder_info.append(model_dir_goes_into_act_stage)
             tds_select = os.path.join(model_dir_goes_into_act_stage, 'pool_data')
 
@@ -286,8 +289,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                        'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
                        output_dir='output', output_name=f'{acquire_single_step}_val_scores', ylabel='value')
 
-            print_log('ACCQUIRE:', file_path=log_file_path)
-            print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file_path=log_file_path)
+            print_log('ACCQUIRE:', file_path=log_file_path_iter)
+            print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file_path=log_file_path_iter)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
@@ -298,10 +301,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
 
 def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_dir, model_dir, epoch_size, decay_steps,
-               epsilon_opt, batch_size, using_full_training_data=False, flag_pretrain=False):
+               epsilon_opt, batch_size, using_full_training_data=False, flag_pretrain=False, log_file_path=f'{OUTPUT_DIR}/log.txt'):
     # --------Here lots of parameters need to be set------Or maybe we could set it in the configuration file-----#
-
-    log_file_path = f'{OUTPUT_DIR}/log.txt'
 
     # batch_size = 5
     if not os.path.exists(model_dir):
