@@ -50,9 +50,9 @@ def running_train_use_all_data(version_space):
     flag_arch_name = "resnet_v2_50"
     resnet_ckpt = os.path.join(resnet_dir, flag_arch_name) + '.ckpt'
     acq_method = "B"
-    epoch_size = 1300
+    epoch_size = MAX_N_EPOCH
     batch_size = 5
-    num_im = 85
+    num_im = N_UNLABELED
     decay_steps = (600 * num_im) // batch_size
     epsilon_opt = 0.001
     using_full_training_data = True
@@ -70,7 +70,7 @@ def running_initial_model(version_space):
     flag_arch_name = "resnet_v2_50"
     resnet_ckpt = os.path.join(resnet_dir, flag_arch_name) + '.ckpt'
     acq_method = "A"
-    epoch_size = 1300
+    epoch_size = MAX_N_EPOCH
     batch_size = 5
     num_im = 10
     decay_steps = (600 * num_im) // batch_size
@@ -150,7 +150,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             epsilon_opt = 0.001
             batch_size_spec = 5
-            max_epoch_single = 1300
+            max_epoch_single = MAX_N_EPOCH
             if acquire_single_step < 7:
                 decay_steps_single = 1800 + acquire_single_step * 600
             else:
@@ -186,7 +186,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                                    acq_index_update=acq_index_update,
                                    ckpt_dir=None,
                                    model_dir=model_dir_sub,
-                                   epoch_size=20,
+                                   epoch_size=INIT_N_EPOCH,
                                    decay_steps=decay_steps_single,
                                    epsilon_opt=epsilon_opt,
                                    batch_size=batch_size_spec,
@@ -329,7 +329,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
     auxi_weight_num = 1
     auxi_decay_step = 300
-    val_step_size = 10
+    val_step_size = VAL_STEP
     selec_training_index = np.zeros([2, N_SELECT])
     # selec_training_index[0, :] = [0, 1, 2, 3, 4]  # this is the index for the initial benign images
     # selec_training_index[1, :] = [2, 4, 5, 6, 7]  # this is the index for the initial malignant images
@@ -492,7 +492,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 print_log("----------removing initial trained files-------------------", v, file_path=log_file_path)
             # train_writer = tf.summary.FileWriter(model_dir, sess.graph)
             train_tot_stat = np.zeros([epoch_size, 4])
-            val_tot_stat = np.zeros([epoch_size // val_step_size, 8])
+            s = epoch_size // val_step_size
+            if epoch_size % val_step_size > 0:
+                s += 1
+            val_tot_stat = np.zeros([s, 8])
 
             train_stats = {
                 'loss': [],

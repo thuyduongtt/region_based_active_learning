@@ -10,7 +10,7 @@ import tensorflow.compat.v1 as tf
 from tensorflow.contrib import image as contrib_image
 import cv2
 
-from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL
+from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, val_data_path
 
 path_mom = "DATA/"  # NOTE, NEED TO BE MANUALLY DEFINED
 
@@ -48,10 +48,12 @@ def prepare_train_data(path, select_benign_train, select_mali_train):
     # print('mali_index')
     # print(mali_index)  # odd indices
 
+    choose_index_tr = np.concatenate([benign_index[select_benign_train], mali_index[select_mali_train]], axis=0)
+    data_train = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_tr)
+
     n_benign = len(benign_index)
     n_malignant = len(mali_index)
 
-    choose_index_tr = np.concatenate([benign_index[select_benign_train], mali_index[select_mali_train]], axis=0)
     benign_index_left = np.delete(range(n_benign), select_benign_train)
     mali_index_left = np.delete(range(n_malignant), select_mali_train)
 
@@ -60,12 +62,22 @@ def prepare_train_data(path, select_benign_train, select_mali_train):
     n = 10
     remain_benign = n_benign - n
     remain_maglinant = n_malignant - n
-    choose_index_pl = np.concatenate(
-        [benign_index[benign_index_left[:remain_benign]], mali_index[mali_index_left[:remain_maglinant]]], axis=0)
-    choose_index_val = np.concatenate([benign_index[benign_index_left[-5:]], mali_index[mali_index_left[-5:]]], axis=0)
-    data_train = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_tr)
+    choose_index_pl = np.concatenate([benign_index[benign_index_left[:remain_benign]], mali_index[mali_index_left[:remain_maglinant]]], axis=0)
     data_pl = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_pl)
-    data_val = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_val)
+
+    if val_data_path is None:
+        choose_index_val = np.concatenate([benign_index[benign_index_left[-5:]], mali_index[mali_index_left[-5:]]], axis=0)
+        data_val = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_val)
+    else:
+        data_set = np.load(val_data_path, allow_pickle=True).item()
+        images = data_set['image']
+        labels = data_set['label']
+        edges = data_set['edge']
+        imageindex = data_set['ImageIndex']
+        classindex = data_set['ClassIndex']
+        choose_index_val = np.arange(len(images))
+
+        data_val = extract_diff_data(images, labels, edges, imageindex, classindex, choose_index_val)
 
     return data_train, data_pl, data_val
 

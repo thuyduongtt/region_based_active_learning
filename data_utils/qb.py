@@ -115,7 +115,7 @@ def extract_benign_malignant(im_indices):
     return class_indices
 
 
-def transfer_data_to_dict():
+def transfer_data_to_dict(split='train'):
     """This function is utilized to save the original image in a dictionary
     Return:
         data['image'] = image [1, Number_of_Image*4] 85*4
@@ -125,7 +125,7 @@ def transfer_data_to_dict():
         from collections import defaultdict
     """
     from collections import defaultdict
-    tr_im, tr_la = get_file_list()
+    tr_im, tr_la = get_file_list(split)
     image, label, image_indices = read_gland_data(tr_im, tr_la)
     cla_ind_fin = extract_benign_malignant(image_indices)
     edge = extract_edge(label)
@@ -136,7 +136,7 @@ def transfer_data_to_dict():
     data['edge'] = edge
     data['ImageIndex'] = image_indices
     data['ClassIndex'] = cla_ind_fin
-    filename = path_mom + f"/Data/{ds_name}.npy"
+    filename = path_mom + f"/Data/{ds_name}_{split}.npy"
     if os.path.isfile(filename):
         print("Remove the existing data file", os.remove(filename))
         print("Saving the data in path:", filename.split(".")[0])
@@ -216,5 +216,6 @@ def transfer_data_to_dict_test():
 
 
 if __name__ == '__main__':
-    transfer_data_to_dict()
+    transfer_data_to_dict('train')
+    transfer_data_to_dict('val')
     transfer_data_to_dict_test()
