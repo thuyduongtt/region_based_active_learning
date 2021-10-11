@@ -96,6 +96,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
     with open(log_file_path, 'w') as log_file:
         print_log(f'====== START TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======', file=log_file)
 
+    start_time = time.time()
+
     agg_method = "Simple_Sum"
     agg_quantile_cri = 0
     if agg_method == "Simple_Sum" and N_SELECT == 5:
@@ -295,9 +297,12 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             log_file_iter.close()
 
-    log_file.write('============================\n')
-    log_file.write(f'====== END TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
-    log_file.close()
+    end_time = time.time()
+    total_time = end_time - start_time
+
+    with open(log_file_path, 'a') as log_file:
+        print_log('============================\n', file=log_file)
+        print_log(f'====== END TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) - {sec_to_time(total_time)} ======\n', file=log_file)
 
 
 def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_dir, model_dir, epoch_size, decay_steps,
