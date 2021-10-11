@@ -509,6 +509,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             print_log("foreground-background loss, foreground-background F1, AUC score, contour loss", file_path=log_file_path)
 
             for single_epoch in range(epoch_size):
+                epoch_start_time = time.time()
                 log_file = open(log_file_path, 'a')
 
                 print_log(f'====== Epoch {single_epoch} / {epoch_size}', file=log_file)
@@ -615,6 +616,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     np.save(os.path.join(model_dir, 'trainstat'), train_tot_stat)
                     np.save(os.path.join(model_dir, 'valstat'), val_tot_stat)
 
+                epoch_end_time = time.time()
+                per_epoch_ptime = epoch_end_time - epoch_start_time
+
+                print_log(f'=== Time: {per_epoch_ptime:.0f}s - {sec_to_time(per_epoch_ptime)}', file=log_file)
                 log_file.close()
 
     return train_stats, val_stats
@@ -626,6 +631,13 @@ def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_sco
     print_log(f'precision_score: {precision_score:.4f}', file=log_file)
     print_log(f'recall_score: {recall_score:.4f}', file=log_file)
     print_log(f'jaccard_score: {jaccard_score:.4f}', file=log_file)
+
+
+def sec_to_time(secconds):
+    sec = int(secconds)
+    m, s = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    return f'{h:d}:{m:02d}:{s:02d}'
 
 
 if __name__ == '__main__':
