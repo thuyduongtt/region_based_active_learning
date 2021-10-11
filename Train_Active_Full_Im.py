@@ -485,11 +485,11 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 ckpt = tf.train.get_checkpoint_state(ckpt_dir)
                 if ckpt and ckpt.model_checkpoint_path:
                     saver_set_all.restore(sess, ckpt.model_checkpoint_path)
-                    print_log("restore parameter from ", ckpt.model_checkpoint_path, file_path=log_file_path)
+                    print_log("restore parameter from ", ckpt.model_checkpoint_path, file=log_file)
             all_files = os.listdir(model_dir)
             for v in all_files:
                 os.remove(os.path.join(model_dir, v))
-                print_log("----------removing initial trained files-------------------", v, file_path=log_file_path)
+                print_log("----------removing initial trained files-------------------", v, file=log_file)
             # train_writer = tf.summary.FileWriter(model_dir, sess.graph)
             train_tot_stat = np.zeros([epoch_size, 4])
             s = epoch_size // val_step_size
@@ -510,7 +510,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 'jaccard': [],
             }
 
-            print_log("foreground-background loss, foreground-background F1, AUC score, contour loss", file_path=log_file_path)
+            print_log("foreground-background loss, foreground-background F1, AUC score, contour loss", file=log_file)
 
             for single_epoch in range(epoch_size):
                 epoch_start_time = time.time()
