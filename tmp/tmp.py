@@ -27,7 +27,7 @@ def test_img():
 
 
 def test_file_time():
-    n = 10000
+    n = 1300
 
     start_time = time.time()
     f = open('log_1.txt', 'a')

@@ -14,9 +14,11 @@ from models.acquistion_full_image import extract_informative_index
 
 import numpy as np
 
+from utils import print_log
+
 
 def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_select_point_from_pool, agg_method,
-              agg_quantile_cri, data_path, save=False):
+              agg_quantile_cri, data_path, save=False, log_file=None):
     # --------Here lots of parameters need to be set------Or maybe we could set it in the configuration file-----#
     if save is True:
         if not os.path.exists(test_data_statistics_dir):
@@ -47,16 +49,16 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
 
         data_train, data_pool, data_val = prepare_train_data(data_path, selec_training_index[0, :], selec_training_index[1, :])
         x_image_pl, y_label_pl, y_edge_pl = padding_training_data(data_pool[0], data_pool[1], data_pool[2], targ_height_npy, targ_width_npy)
-        print("The pooling data size %d" % np.shape(x_image_pl)[0])
+        print_log("The pooling data size %d" % np.shape(x_image_pl)[0], file=log_file)
         y_imindex_pl = np.array(data_pool[-2])
         y_clsindex_pl = np.array(data_pool[-1])
 
         if acqu_index is not None:
             for remove_data_row in range(np.shape(acqu_index)[0]):
-                print("Number of benign and malignant samples in previous selection",
-                      y_clsindex_pl[acqu_index[remove_data_row, :]])
+                print_log("Number of benign and malignant samples in previous selection",
+                          y_clsindex_pl[acqu_index[remove_data_row, :]])
                 removed_image_index = y_imindex_pl[acqu_index[remove_data_row, :]]
-                print("Already selected image index", removed_image_index)
+                print_log("Already selected image index", removed_image_index, file=log_file)
                 image_tot_index = range(np.shape(x_image_pl)[0])
                 image_index_left = np.delete(image_tot_index, acqu_index[remove_data_row, :])
                 x_image_pl = x_image_pl[image_index_left]
@@ -64,8 +66,8 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                 y_edge_pl = y_edge_pl[image_index_left]
                 y_clsindex_pl = y_clsindex_pl[image_index_left]
                 y_imindex_pl = y_imindex_pl[image_index_left]
-                print([a in removed_image_index for a in y_imindex_pl])
-                print("The shape of pool data after selection", np.shape(x_image_pl)[0])
+                print_log([a in removed_image_index for a in y_imindex_pl], file=log_file)
+                print_log("The shape of pool data after selection", np.shape(x_image_pl)[0], file=log_file)
 
         # ------------------------------Here is for build up the network-------------------------------------###
         fb_logits, ed_logits = ResNet_V2_DMNN(images=images_train, training_state=phase_train,
@@ -79,18 +81,19 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
         variables_to_restore = variable_averages.variables_to_restore(tf.moving_average_variables())
         saver = tf.train.Saver(variables_to_restore)
 
-        print(" =====================================================")
-        print("Dropout Phase", Dropout_State)
-        print("The acquire method", acqu_method)
-        print("The number of repeat times", num_sample)
-        print("The number of dropout times", num_sample_drop)
-        print("The images which needs to removed from pool set are:", acqu_index)
+        print_log("=====================================================", file=log_file)
+        print_log("Dropout Phase", Dropout_State, file=log_file)
+        print_log("The acquire method", acqu_method, file=log_file)
+        print_log("The number of repeat times", num_sample, file=log_file)
+        print_log("The number of dropout times", num_sample_drop, file=log_file)
+        print_log("The images which needs to removed from pool set are:", acqu_index, file=log_file)
 
         with tf.Session() as sess:
             ckpt = tf.train.get_checkpoint_state(ckpt_dir)
             if ckpt and ckpt.model_checkpoint_path:
+                print_log("Restore parameter from", ckpt.model_checkpoint_path, file=log_file)
                 saver.restore(sess, ckpt.model_checkpoint_path)
-                print("restore parameter from ", ckpt.model_checkpoint_path)
+                print_log("Done.", file=log_file)
 
             ArgIndex = np.zeros([num_select_point_from_pool, np.shape(acqu_method)[0]])
             for Repeat in range(num_sample):
@@ -134,7 +137,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
 
                 fb_bald_mean_tot = np.squeeze(np.array(fb_bald_mean_tot), axis=1)
                 #                ed_bald_mean_tot = np.squeeze(np.array(ed_bald_mean_tot), axis=1)
-                print("Using seletion method", acqu_method)
+                print_log("Using seletion method", acqu_method, file=log_file)
                 acqu_method_index = 0
                 for single_acqu_method in acqu_method:
                     ArgIndex[:, acqu_method_index] = extract_informative_index(single_acqu_method, x_image_pl,
@@ -144,7 +147,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                                                                                num_select_point_from_pool,
                                                                                agg_method, agg_quantile_cri)
 
-                    print("Finish method", single_acqu_method)
+                    print_log("Finish method", single_acqu_method, file=log_file)
                     acqu_method_index = acqu_method_index + 1
 
             # np.save(os.path.join(test_data_statistics_dir, 'stat_tot'), stat_tot)

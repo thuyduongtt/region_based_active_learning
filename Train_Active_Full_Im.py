@@ -16,18 +16,9 @@ import argparse
 import time
 from pathlib import Path
 from CONSTS import *
+from utils import print_log, sec_to_time
 
 from visualization import plot_multi
-
-
-def print_log(*content, file=None, file_path=None):
-    print(*content)
-    if file is not None:
-        print(*content, file=file)
-    if file_path is not None:
-        with open(file_path, 'a') as f:
-            print(*content, file=f)
-
 
 # print("--------------------------------------------------------------")
 # print("---------------DEFINE YOUR TRAINING DATA PATH-----------------")
@@ -124,7 +115,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         resnet_ckpt = os.path.join(resnet_dir, flag_arch_name) + '.ckpt'
 
         num_selec_point_from_pool = N_SELECT
-        total_active_step = N_UNLABELED // num_selec_point_from_pool
+        total_active_step = N_UNLABELED // num_selec_point_from_pool - 3
 
         acq_index_old = np.zeros([total_active_step, num_selec_point_from_pool])
         acq_method_total = ["A", "B", "C", "D"]
@@ -255,6 +246,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
                 print_log("=============Finish Experiment No.%d===================" % repeat_time, file_path=log_file_path_iter)
 
+            log_file_iter = open(log_file_path_iter, 'a')
+
             # ------Below is for selecting the best experiment based on the training and validation statistics-----#
             fb_loss_index = np.argmin(tot_train_val_stat_for_diff_exp_same_step[:, 0])
             ed_loss_index = np.argmin(tot_train_val_stat_for_diff_exp_same_step[:, 1])
@@ -263,7 +256,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             perf_comp = [fb_loss_index, ed_loss_index, fb_f1_index, fb_auc_index]
             best_per_index = max(set(perf_comp), key=perf_comp.count)
             model_dir_goes_into_act_stage = os.path.join(model_dir, 'rep_%d' % best_per_index)
-            print_log("The selected folder", model_dir_goes_into_act_stage, file_path=log_file_path_iter)
+            print_log("The selected folder", model_dir_goes_into_act_stage, file=log_file_iter)
             total_folder_info.append(model_dir_goes_into_act_stage)
             tds_select = os.path.join(model_dir_goes_into_act_stage, 'pool_data')
 
@@ -281,7 +274,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                 selec_index = selection(tds_select, model_dir_goes_into_act_stage,
                                         [acq_selec_method], acq_index_rm,
                                         num_selec_point_from_pool, agg_method, agg_quantile_cri,
-                                        data_path=training_data_path)
+                                        data_path=training_data_path, log_file=log_file_iter)
                 acq_index_update = selec_index[:, 0]
 
             plot_multi([train_results['loss'], train_results['f1']], 'Loss & F1 Score during Training',
@@ -290,15 +283,17 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                        'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
                        output_dir='output', output_name=f'{acquire_single_step}_val_scores', ylabel='value')
 
-            print_log('ACCQUIRE:', file_path=log_file_path_iter)
-            print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file_path=log_file_path_iter)
+            print_log('ACCQUIRE:', file=log_file_iter)
+            print_log(f'AL iteration {acquire_single_step}:', acq_index_update, np.shape(acq_index_update), file=log_file_iter)
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
 
             iter_end_time = time.time()
             per_iter_ptime = iter_end_time - iter_start_time
-            print_log(f'Iteration Time: {per_iter_ptime:.0f}s - {sec_to_time(per_iter_ptime)}', file_path=log_file_path_iter)
+            print_log(f'Iteration Time: {per_iter_ptime:.0f}s - {sec_to_time(per_iter_ptime)}', file=log_file_iter)
+
+            log_file_iter.close()
 
     log_file.write('============================\n')
     log_file.write(f'====== END TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
@@ -400,7 +395,6 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 x_tr_group[i] = np.concatenate([x_tr_group[i], x_pl_group[i]], axis=0)
         print_log("---After updating, the shape for the training data and pool data-------", file=log_file)
         [print_log(np.shape(v), np.shape(q), file=log_file) for v, q in zip(x_tr_group, x_pl_group)]
-        log_file.close()
 
         x_image_tr, y_label_tr, y_edge_tr, y_imindex_tr, y_clsindex_tr = x_tr_group
 
@@ -458,7 +452,6 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         else:
             saver_set_all = tf.train.Saver(max_to_keep=1)
 
-        log_file = open(log_file_path, 'a')
         print_log("\n=====================================================", file=log_file)
         print_log(f"The shape of new training data: {np.shape(x_image_tr)[0]} ===> {np.shape(x_image_tr)[0] / N_UNLABELED * 100:.0f}%", file=log_file)
         print_log("The final validation data size %d" % np.shape(x_image_val)[0], file=log_file)
@@ -484,8 +477,9 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             else:
                 ckpt = tf.train.get_checkpoint_state(ckpt_dir)
                 if ckpt and ckpt.model_checkpoint_path:
+                    print_log("Restore parameter from", ckpt.model_checkpoint_path, file=log_file)
                     saver_set_all.restore(sess, ckpt.model_checkpoint_path)
-                    print_log("restore parameter from ", ckpt.model_checkpoint_path, file=log_file)
+                    print_log("Done.", file=log_file)
             all_files = os.listdir(model_dir)
             for v in all_files:
                 os.remove(os.path.join(model_dir, v))
@@ -515,7 +509,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
             for single_epoch in range(epoch_size):
                 epoch_start_time = time.time()
 
-                print_log(f'====== Epoch {single_epoch} / {epoch_size}', file=log_file)
+                print_log(f'================================================================================ Epoch {single_epoch} / {epoch_size}', file=log_file)
 
                 if auxi_weight_num > 0.001:
                     auxi_weight_num = np.power(0.1, np.floor(single_epoch / auxi_decay_step))
@@ -561,6 +555,9 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                            labels=['Loss', 'F1'], output_dir='output', output_name='current_loss_f1', ylabel='value')
 
                 if single_epoch % val_step_size == 0 or single_epoch == epoch_size - 1:
+                    log_file.close()
+                    log_file = open(log_file_path, 'a')
+
                     val_iteration = np.shape(x_image_val)[0] // batch_size
                     print_log("start validating .......with %d images and %d iterations" % (np.shape(x_image_val)[0], val_iteration), file=log_file)
 
@@ -635,13 +632,6 @@ def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_sco
     print_log(f'precision_score: {precision_score:.4f}', file=log_file)
     print_log(f'recall_score: {recall_score:.4f}', file=log_file)
     print_log(f'jaccard_score: {jaccard_score:.4f}', file=log_file)
-
-
-def sec_to_time(secconds):
-    sec = int(secconds)
-    m, s = divmod(sec, 60)
-    h, m = divmod(m, 60)
-    return f'{h:d}:{m:02d}:{s:02d}'
 
 
 if __name__ == '__main__':
