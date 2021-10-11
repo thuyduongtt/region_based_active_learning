@@ -105,6 +105,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                 #                ed_bald_mean_tot = []
 
                 num_image = np.shape(x_image_pl)[0]
+                print_log(f"Looping through {num_image} images ...", file=log_file)
                 for single_image in range(num_image):
                     feed_dict_op = {images_train: np.expand_dims(x_image_pl[single_image], 0),
                                     instance_labels_train: np.expand_dims(y_label_pl[single_image], 0),
