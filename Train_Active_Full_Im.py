@@ -556,7 +556,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 plot_multi([train_stats['loss'], train_stats['f1']], 'Loss & F1 Score during Training',
                            labels=['Loss', 'F1'], output_dir='output', output_name='current_loss_f1', ylabel='value')
 
-                if single_epoch % val_step_size == 0:
+                if single_epoch % val_step_size == 0 or single_epoch == epoch_size - 1:
                     val_iteration = np.shape(x_image_val)[0] // batch_size
                     print_log("start validating .......with %d images and %d iterations" % (np.shape(x_image_val)[0], val_iteration), file=log_file)
 

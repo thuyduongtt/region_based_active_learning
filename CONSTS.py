@@ -26,4 +26,4 @@ MAX_RUN_COUNT = 1
 OUTPUT_DIR = 'output'
 INIT_N_EPOCH = 20
 MAX_N_EPOCH = 1300
-VAL_STEP = 10  # cannot be smaller than both epochs sizes above
+VAL_STEP = 10
