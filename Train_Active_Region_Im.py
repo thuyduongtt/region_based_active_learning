@@ -294,7 +294,7 @@ def train(resnet_ckpt, ckpt_dir, model_dir, epoch_size, decay_steps, epsilon_opt
         print("\n =====================================================")
         print("The shape of new training data", np.shape(x_image_tr)[0])
         print("The final validation data size %d" % np.shape(x_image_val)[0])
-        print("There are %d iteratioins in each epoch" % iteration)
+        print("There are %d iterations in each epoch" % iteration)
         print("ckpt files are saved to: ", model_dir)
         print("Epsilon used in Adam optimizer: ", epsilon_opt)
         print("Initial learning rate", learning_rate)

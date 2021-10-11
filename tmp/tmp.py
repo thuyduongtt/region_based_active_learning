@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from PIL import Image
 import tensorflow as tf
@@ -24,7 +26,28 @@ def test_img():
     img.save('test.png')
 
 
+def test_file_time():
+    n = 10000
+
+    start_time = time.time()
+    f = open('log_1.txt', 'a')
+    for i in range(n):
+        print(i, file=f)
+    f.close()
+    end_time = time.time()
+    time_1 = end_time - start_time
+
+    start_time = time.time()
+    for i in range(n):
+        with open('log_2.txt', 'a') as f:
+            print(i, file=f)
+    end_time = time.time()
+    time_2 = end_time - start_time
+
+    print(time_1)
+    print(time_2)
+    print(f'{time_2 / time_1:.0f}')
+
+
 if __name__ == '__main__':
-    selec_index = np.random.choice(range(1330 - (0 + 1) * 5), 5, replace=False)
-    print(selec_index.shape[0])
-    print(selec_index)
+    test_file_time()

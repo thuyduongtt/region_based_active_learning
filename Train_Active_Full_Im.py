@@ -138,6 +138,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
         for acquire_single_step in range(total_active_step):
+            iter_start_time = time.time()
             log_file_path_iter = f'{OUTPUT_DIR}/log_{acquire_single_step}.txt'
             print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path_iter)
 
@@ -294,6 +295,10 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             # np.save(os.path.join(model_dir, 'acqu_index'), Acq_Index_Update)
             np.save(os.path.join(logs_path, 'total_select_folder'), total_folder_info)
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
+
+            iter_end_time = time.time()
+            per_iter_ptime = iter_end_time - iter_start_time
+            print_log(f'Iteration Time: {per_iter_ptime:.0f}s - {sec_to_time(per_iter_ptime)}', file_path=log_file_path_iter)
 
     log_file.write('============================\n')
     log_file.write(f'====== END TRAINING ({time.strftime("%d/%m/%Y %H:%M:%S")}) ======\n')
@@ -457,7 +462,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print_log("\n=====================================================", file=log_file)
         print_log(f"The shape of new training data: {np.shape(x_image_tr)[0]} ===> {np.shape(x_image_tr)[0] / N_UNLABELED * 100:.0f}%", file=log_file)
         print_log("The final validation data size %d" % np.shape(x_image_val)[0], file=log_file)
-        print_log("There are %d iteratioins in each epoch" % iteration, file=log_file)
+        print_log("There are %d iterations in each epoch" % iteration, file=log_file)
         print_log("ckpt files are saved to: ", model_dir, file=log_file)
         print_log("Epsilon used in Adam optimizer: ", epsilon_opt, file=log_file)
         print_log("Initial learning rate", learning_rate, file=log_file)
@@ -470,7 +475,6 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print_log("The checkpoing file is saved every %d steps" % save_checkpoint_period, file=log_file)
         print_log("The L2 regularization is turned on:", flag_l2_regu, file=log_file)
         print_log("=====================================================", file=log_file)
-        log_file.close()
 
         with tf.Session().as_default() as sess:
             if flag_pretrain is False:
@@ -510,7 +514,6 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
 
             for single_epoch in range(epoch_size):
                 epoch_start_time = time.time()
-                log_file = open(log_file_path, 'a')
 
                 print_log(f'====== Epoch {single_epoch} / {epoch_size}', file=log_file)
 
@@ -619,8 +622,9 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 epoch_end_time = time.time()
                 per_epoch_ptime = epoch_end_time - epoch_start_time
 
-                print_log(f'=== Time: {per_epoch_ptime:.0f}s - {sec_to_time(per_epoch_ptime)}', file=log_file)
-                log_file.close()
+                print_log(f'[Time: {per_epoch_ptime:.0f}s]', file=log_file)
+
+        log_file.close()
 
     return train_stats, val_stats
 
