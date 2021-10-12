@@ -66,7 +66,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                 y_edge_pl = y_edge_pl[image_index_left]
                 y_clsindex_pl = y_clsindex_pl[image_index_left]
                 y_imindex_pl = y_imindex_pl[image_index_left]
-                print_log([a in removed_image_index for a in y_imindex_pl], file=log_file)
+                # print_log([a in removed_image_index for a in y_imindex_pl], file=log_file)
                 print_log("The shape of pool data after selection", np.shape(x_image_pl)[0], file=log_file)
 
         # ------------------------------Here is for build up the network-------------------------------------###
