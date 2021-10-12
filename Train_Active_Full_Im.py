@@ -141,7 +141,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
                 acq_index_update = np.array(acq_index_update).astype('int64')
 
             epsilon_opt = 0.001
-            batch_size_spec = 5
+            batch_size_spec = BATCH_SIZE
             max_epoch_single = MAX_N_EPOCH
             if acquire_single_step < 7:
                 decay_steps_single = 1800 + acquire_single_step * 600

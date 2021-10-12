@@ -6,6 +6,7 @@
 # IM_CHANNEL = 3
 # N_UNLABELED = 85
 # N_SELECT = 5
+# BATCH_SIZE = 5
 # training_data_path = "DATA/Data/glanddata.npy"
 # val_data_path = None
 # test_data_path = "DATA/Data/glanddata_testb.npy"
@@ -18,6 +19,7 @@ IM_PAD_HEIGHT = 256
 IM_CHANNEL = 6
 N_UNLABELED = 1350
 N_SELECT = 67
+BATCH_SIZE = 128
 training_data_path = "DATA/Data/QB_train.npy"
 val_data_path = "DATA/Data/QB_val.npy"
 test_data_path = "DATA/Data/QB_test_benign.npy"
