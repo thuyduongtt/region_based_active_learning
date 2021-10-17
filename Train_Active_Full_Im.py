@@ -292,8 +292,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             np.save(os.path.join(logs_path, 'total_acqu_index'), acq_index_old)
 
             iter_end_time = time.time()
-            per_iter_ptime = iter_end_time - iter_start_time
-            print_log(f'Iteration Time: {per_iter_ptime:.0f}s - {sec_to_time(per_iter_ptime)}', file=log_file_iter)
+            iter_time = iter_end_time - iter_start_time
+            print_log(f'Iteration Time: {iter_time:.0f}s - {sec_to_time(iter_time)}', file=log_file_iter)
 
             log_file_iter.close()
 
