@@ -23,7 +23,7 @@ N_UNLABELED = 48
 N_SELECT = 5
 BATCH_SIZE = 5
 training_data_path = "DATA/Data/" + DS_NAME + "_train.npy"
-val_data_path = "DATA/Data/" + DS_NAME + "_val.npy"
+val_data_path = "DATA/Data/" + DS_NAME + "_test.npy"
 test_data_path = "DATA/Data/" + DS_NAME + "_test_benign.npy"
 
 MAX_RUN_COUNT = 1

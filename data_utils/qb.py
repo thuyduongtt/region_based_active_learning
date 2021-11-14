@@ -57,7 +57,7 @@ def get_file_list(split='train'):
     return train_image_filename, train_label_filename
 
 
-def read_gland_data(im_list, la_list, split_name='train'):
+def read_data(im_list, la_list, split_name='train'):
     """This function is utilized to read the image and label
     """
     images = []
@@ -129,7 +129,7 @@ def transfer_data_to_dict(split='train'):
     """
     from collections import defaultdict
     tr_im, tr_la = get_file_list(split)
-    image, label, image_indices = read_gland_data(tr_im, tr_la)
+    image, label, image_indices = read_data(tr_im, tr_la)
     cla_ind_fin = extract_benign_malignant(image_indices)
     edge = extract_edge(label)
 
@@ -162,7 +162,7 @@ def transfer_data_to_dict_test():
     """
     from collections import defaultdict
     test_im, test_la = get_file_list(split='test')
-    image, label, image_indices = read_gland_data(test_im, test_la, "test")
+    image, label, image_indices = read_data(test_im, test_la, "test")
     cla_ind_fin = extract_benign_malignant(image_indices)
 
     image_benign = []
@@ -220,5 +220,5 @@ def transfer_data_to_dict_test():
 
 if __name__ == '__main__':
     transfer_data_to_dict('train')
-    transfer_data_to_dict('val')
+    transfer_data_to_dict('test')
     transfer_data_to_dict_test()
