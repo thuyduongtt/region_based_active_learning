@@ -5,11 +5,11 @@ from PIL import Image
 # https://matplotlib.org/3.1.0/gallery/color/named_colors.html
 colors = [
     ['steelblue'],
-    ['steelblue', 'firebrick'],
-    ['orange', 'lightskyblue', 'firebrick'],
-    ['orange', 'lightskyblue', 'firebrick', 'limegreen'],
-    ['orange', 'lightskyblue', 'firebrick', 'limegreen', 'darkviolet'],
-    ['orange', 'lightskyblue', 'firebrick', 'limegreen', 'darkviolet', 'deeppink'],
+    ['steelblue', 'red'],
+    ['orange', 'lightskyblue', 'red'],
+    ['orange', 'lightskyblue', 'red', 'limegreen'],
+    ['orange', 'lightskyblue', 'red', 'limegreen', 'darkviolet'],
+    ['orange', 'lightskyblue', 'red', 'limegreen', 'darkviolet', 'deeppink'],
 ]
 
 

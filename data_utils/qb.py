@@ -17,17 +17,17 @@ from PIL import Image
 from scipy import ndimage
 from skimage.morphology import dilation, disk
 
+from CONSTS import DS_NAME, INVERTED
+
 path_mom = "DATA/"  # the directory for saving data
 # path_mom = "/Users/bo/Documents/Exp_Data/"
 path_use = path_mom + 'Data'
 if not os.path.exists(path_use):
     os.makedirs(path_use)
 
-ds_name = 'QB'
-
 
 def get_file_list(split='train'):
-    path = Path(path_mom, ds_name, split)
+    path = Path(path_mom, DS_NAME, 'regions', split)
     input_dir_1 = 'input1'
     input_dir_2 = 'input2'
     label_dir = 'label'
@@ -72,14 +72,17 @@ def read_gland_data(im_list, la_list, split_name='train'):
         im = np.concatenate((im1, im2), axis=-1)
 
         label_im = Image.open(la_filename)
-        la = 255 - np.array(label_im)  # inverse image: white pixels indicate changes
+        if INVERTED:
+            la = 255 - np.array(label_im)  # invert image: white pixels indicate changes
+        else:
+            la = np.array(label_im)
 
         images.append(im)
         labels.append(la)
         image_indices.append(index)
         index = index + 1
 
-    print(f'{index} {ds_name} {split_name} images are loaded')
+    print(f'{index} {DS_NAME} {split_name} images are loaded')
     return images, labels, image_indices
 
 
@@ -136,13 +139,13 @@ def transfer_data_to_dict(split='train'):
     data['edge'] = edge
     data['ImageIndex'] = image_indices
     data['ClassIndex'] = cla_ind_fin
-    filename = path_mom + f"/Data/{ds_name}_{split}.npy"
+    filename = path_mom + f"/Data/{DS_NAME}_{split}.npy"
     if os.path.isfile(filename):
         print("Remove the existing data file", os.remove(filename))
         print("Saving the data in path:", filename.split(".")[0])
     else:
         print("Oh, this is the first time of creating this file")
-        print(f"Creating the training data npy for {ds_name}")
+        print(f"Creating the training data npy for {DS_NAME}")
 
     np.save(filename.split(".")[0], data)
 
@@ -190,7 +193,7 @@ def transfer_data_to_dict_test():
     data['edge'] = edge_benign
     data['ImageIndex'] = image_index_benign
     data['ClassIndex'] = cla_ind_benign
-    filename = path_mom + f"/Data/{ds_name}_test_benign.npy"
+    filename = path_mom + f"/Data/{DS_NAME}_test_benign.npy"
     if os.path.isfile(filename):
         print("Remove the existing data file", os.remove(filename))
         print("Saving the data in path:", filename.split(".")[0])
@@ -205,7 +208,7 @@ def transfer_data_to_dict_test():
     data1['edge'] = edge_mali
     data1['ImageIndex'] = image_index_mali
     data1['ClassIndex'] = cla_ind_mali
-    filename = path_mom + f"/Data/{ds_name}_test_mali.npy"
+    filename = path_mom + f"/Data/{DS_NAME}_test_mali.npy"
     if os.path.isfile(filename):
         print("Remove the existing data file", os.remove(filename))
         print("Saving the data in path:", filename.split(".")[0])

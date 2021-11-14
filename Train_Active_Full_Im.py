@@ -281,8 +281,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             plot_multi([train_results['loss'], train_results['f1']], 'Loss & F1 Score during Training',
                        labels=['Loss', 'F1'], output_dir='output', output_name=f'{acquire_single_step}_loss_f1', ylabel='value')
-            plot_multi([val_results['f1'], val_results['accuracy'], val_results['precision'], val_results['recall'], val_results['jaccard']],
-                       'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
+            plot_multi([val_results['f1'], val_results['accuracy'], val_results['precision'], val_results['recall'], val_results['dice']],
+                       'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Dice'],
                        output_dir='output', output_name=f'{acquire_single_step}_val_scores', ylabel='value')
 
             print_log('ACCQUIRE:', file=log_file_iter)
@@ -506,7 +506,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                 'accuracy': [],
                 'precision': [],
                 'recall': [],
-                'jaccard': [],
+                'dice': [],
             }
 
             print_log("foreground-background loss, foreground-background F1, AUC score, contour loss", file=log_file)
@@ -595,7 +595,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                         val_stat_per_epoch[single_batch_val, 4] = _accuracy_score
                         val_stat_per_epoch[single_batch_val, 5] = _precision_score
                         val_stat_per_epoch[single_batch_val, 6] = _recall_score
-                        val_stat_per_epoch[single_batch_val, 7] = _jaccard_score
+                        val_stat_per_epoch[single_batch_val, 7] = 2 * _jaccard_score / (1 + _jaccard_score)  # convert jaccard to dice
 
                     i = single_epoch // val_step_size
                     val_tot_stat[i, :] = np.mean(val_stat_per_epoch, axis=0)
@@ -608,10 +608,10 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
                     val_stats['accuracy'].append(val_tot_stat[i, 4])
                     val_stats['precision'].append(val_tot_stat[i, 5])
                     val_stats['recall'].append(val_tot_stat[i, 6])
-                    val_stats['jaccard'].append(val_tot_stat[i, 7])
+                    val_stats['dice'].append(val_tot_stat[i, 7])
 
-                    plot_multi([val_stats['f1'], val_stats['accuracy'], val_stats['precision'], val_stats['recall'], val_stats['jaccard']],
-                               'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Jaccard'],
+                    plot_multi([val_stats['f1'], val_stats['accuracy'], val_stats['precision'], val_stats['recall'], val_stats['dice']],
+                               'Validation Scores', labels=['F1', 'Accuracy', 'Precision', 'Recall', 'Dice'],
                                output_dir='output', output_name='current_val_scores', ylabel='value')
 
                 if single_epoch % save_checkpoint_period == 0 or single_epoch == (epoch_size - 1):
@@ -631,12 +631,12 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
     return train_stats, val_stats
 
 
-def print_metrics(f1, accuracy_score, precision_score, recall_score, jaccard_score, log_file):
+def print_metrics(f1, accuracy_score, precision_score, recall_score, dice_score, log_file):
     print_log(f'f1: {f1:.4f}', file=log_file)
     print_log(f'accuracy_score: {accuracy_score:.4f}', file=log_file)
     print_log(f'precision_score: {precision_score:.4f}', file=log_file)
     print_log(f'recall_score: {recall_score:.4f}', file=log_file)
-    print_log(f'jaccard_score: {jaccard_score:.4f}', file=log_file)
+    print_log(f'dice_score: {dice_score:.4f}', file=log_file)
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ import tensorflow.compat.v1 as tf
 from tensorflow.contrib import image as contrib_image
 import cv2
 
-from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, val_data_path
+from CONSTS import IM_PAD_WIDTH, IM_PAD_HEIGHT, IM_CHANNEL, val_data_path, DS_NAME
 
 path_mom = "DATA/"  # NOTE, NEED TO BE MANUALLY DEFINED
 
@@ -217,8 +217,8 @@ def aug_train_data(image, label, edge, binary_mask, batch_size, aug, imshape):
 
 
 def collect_test_data(resize=True):
-    test_a_path = path_mom + "/Data/QB_test_benign.npy"
-    test_b_path = path_mom + "/Data/QB_test_mali.npy"
+    test_a_path = path_mom + "/Data/" + DS_NAME + "_test_benign.npy"
+    test_b_path = path_mom + "/Data/" + DS_NAME + "_test_mali.npy"
     image_tot, label_tot = [], []
     target_height, target_width = IM_PAD_HEIGHT, IM_PAD_WIDTH
     for single_path in [test_a_path, test_b_path]:
