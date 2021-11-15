@@ -7,6 +7,7 @@
 # INVERTED = False
 # N_UNLABELED = 85
 # N_SELECT = 5
+# RANDOM_SELECT = False
 # BATCH_SIZE = 5
 # training_data_path = "DATA/Data/glanddata.npy"
 # val_data_path = None
@@ -21,6 +22,7 @@ IM_CHANNEL = 6
 INVERTED = True
 N_UNLABELED = 48
 N_SELECT = 5
+RANDOM_SELECT = True
 BATCH_SIZE = 5
 training_data_path = "DATA/Data/" + DS_NAME + "_train.npy"
 val_data_path = "DATA/Data/" + DS_NAME + "_test.npy"

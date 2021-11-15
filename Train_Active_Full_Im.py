@@ -102,9 +102,13 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
     agg_quantile_cri = 0
     if agg_method == "Simple_Sum" and N_SELECT == 5:
         acqu_index_all = np.zeros([3, 5])
-        acqu_index_all[0, :] = [36, 34, 32, 57, 20]  # stage for B is 1, for D is 2, for F is 3
-        acqu_index_all[1, :] = [36, 33, 34, 32, 57]
-        acqu_index_all[2, :] = [45, 57, 33, 9, 30]
+        if not RANDOM_SELECT:
+            acqu_index_all[0, :] = [36, 34, 32, 57, 20]  # stage for B is 1, for D is 2, for F is 3
+            acqu_index_all[1, :] = [36, 33, 34, 32, 57]
+            acqu_index_all[2, :] = [45, 57, 33, 9, 30]
+        else:
+            for i in [0, 1, 2]:
+                acqu_index_all[i, :] = np.random.choice(range(N_UNLABELED // 2), N_SELECT, replace=False)
     else:
         # print_log("This acquisition method is on its way :) ", file_path=log_file_path)
         acqu_index_all = None
