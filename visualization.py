@@ -2,42 +2,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-# https://matplotlib.org/3.1.0/gallery/color/named_colors.html
+# https://matplotlib.org/stable/gallery/color/named_colors.html
 colors = [
     ['steelblue'],
     ['steelblue', 'red'],
-    ['orange', 'lightskyblue', 'red'],
-    ['orange', 'lightskyblue', 'red', 'limegreen'],
-    ['orange', 'lightskyblue', 'red', 'limegreen', 'darkviolet'],
-    ['orange', 'lightskyblue', 'red', 'limegreen', 'darkviolet', 'deeppink'],
+    ['darkorange', 'deepskyblue', 'red'],
+    ['darkorange', 'deepskyblue', 'red', 'limegreen'],
+    ['darkorange', 'deepskyblue', 'red', 'limegreen', 'darkviolet'],
+    ['darkorange', 'deepskyblue', 'red', 'limegreen', 'darkviolet', 'cyan']
 ]
-
-
-def plot(values, title, output_dir, output_name,
-         xlabel='iterations', ylabel='loss', linewidth=1.5, marker=None, figsize=(10, 5), upperbound=0.0,
-         xticks=None, xticklabels=None, yticks=None, yticklabels=None, areas=None):
-    plt.figure(figsize=figsize)
-    plt.title(title)
-    plt.plot(values, colors[0][0], linewidth=linewidth, marker=marker)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.grid(True, linestyle='--', alpha=.75)
-
-    if xticks is not None:
-        plt.xticks(xticks, xticklabels if xticklabels is not None else xticks)
-
-    if yticks is not None:
-        plt.yticks(yticks, yticklabels if yticklabels is not None else yticks)
-
-    if areas is not None:
-        for a in areas:
-            plt.axvspan(a['min'], a['max'], color=a['color'], alpha=a['alpha'])
-
-    if upperbound > 0:
-        plt.axhline(upperbound, color='k', linestyle='--', linewidth=1.)
-
-    plt.savefig(f'{output_dir}/{output_name}.png')
-    plt.close('all')
+MAX_N_COLORS = 6
 
 
 def plot_multi(list_of_values, title, labels, output_dir, output_name,
@@ -51,7 +25,7 @@ def plot_multi(list_of_values, title, labels, output_dir, output_name,
             m = None
         else:
             m = markers[i]
-        if n < 3:
+        if n < MAX_N_COLORS:
             plt.plot(list_of_values[i], label=labels[i], color=colors[n][i], linewidth=linewidth, marker=m)
         else:
             plt.plot(list_of_values[i], label=labels[i], linewidth=linewidth, marker=m)
