@@ -220,5 +220,5 @@ def transfer_data_to_dict_test():
 
 if __name__ == '__main__':
     transfer_data_to_dict('train')
-    transfer_data_to_dict('test')
+    transfer_data_to_dict('val')
     transfer_data_to_dict_test()
