@@ -27,7 +27,7 @@ if not os.path.exists(path_use):
 
 
 def get_file_list(split='train'):
-    path = Path(path_mom, DS_NAME, 'regions', split)
+    path = Path(path_mom, DS_NAME, split)
     input_dir_1 = 'input1'
     input_dir_2 = 'input2'
     label_dir = 'label'
