@@ -106,6 +106,7 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
 
                 num_image = np.shape(x_image_pl)[0]
                 print_log(f"Looping through {num_image} images ...", file=log_file)
+                count = 0
                 for single_image in range(num_image):
                     feed_dict_op = {images_train: np.expand_dims(x_image_pl[single_image], 0),
                                     instance_labels_train: np.expand_dims(y_label_pl[single_image], 0),
@@ -113,28 +114,32 @@ def selection(test_data_statistics_dir, ckpt_dir, acqu_method, acqu_index, num_s
                                     phase_train: False,
                                     dropout_phase: Dropout_State}
                     fb_prob_per_image = []
-                    ed_prob_per_image = []
+                    # ed_prob_per_image = []
                     fb_bald_per_image = []
-                    ed_bald_per_image = []
+                    # ed_bald_per_image = []
                     fetches_pool = [fb_prob, edge_prob]
                     for single_sample in range(num_sample_drop):
                         _fb_prob, _ed_prob = sess.run(fetches=fetches_pool, feed_dict=feed_dict_op)
                         single_fb_bald = _fb_prob * np.log(_fb_prob + 1e-08)
-                        single_ed_bald = _ed_prob * np.log(_ed_prob + 1e-08)
+                        # single_ed_bald = _ed_prob * np.log(_ed_prob + 1e-08)
                         fb_bald_per_image.append(single_fb_bald)
-                        #                        ed_bald_per_image.append(single_ed_bald)
+                        # ed_bald_per_image.append(single_ed_bald)
                         fb_prob_per_image.append(_fb_prob[0])
-                    #                        ed_prob_per_image.append(_ed_prob[0])
+                        # ed_prob_per_image.append(_ed_prob[0])
 
                     fb_pred = np.mean(fb_prob_per_image, axis=0)
-                    #                    ed_pred = np.mean(ed_prob_per_image, axis=0)
+                    # ed_pred = np.mean(ed_prob_per_image, axis=0)
 
                     fb_prob_tot.append(fb_pred)
-                    #                    ed_prob_tot.append(ed_pred)
+                    # ed_prob_tot.append(ed_pred)
                     fb_prob_var_tot.append(np.std(fb_prob_per_image, axis=0))
-                    #                    ed_prob_var_tot.append(np.std(ed_prob_per_image, axis=0))
+                    # ed_prob_var_tot.append(np.std(ed_prob_per_image, axis=0))
                     fb_bald_mean_tot.append(np.mean(fb_bald_per_image, axis=0))
-                #                    ed_bald_mean_tot.append(np.mean(ed_bald_per_image, axis=0))
+                    # ed_bald_mean_tot.append(np.mean(ed_bald_per_image, axis=0))
+
+                    count += 1
+                    if count % 100 == 0 or count == num_image - 1:
+                        print(f'...{count}')
 
                 fb_bald_mean_tot = np.squeeze(np.array(fb_bald_mean_tot), axis=1)
                 #                ed_bald_mean_tot = np.squeeze(np.array(ed_bald_mean_tot), axis=1)
