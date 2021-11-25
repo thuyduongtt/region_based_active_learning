@@ -652,6 +652,11 @@ if __name__ == '__main__':
     parser.add_argument("--gpu_only", action='store_true', help='Run only when GPU is available')
     args = parser.parse_args()
 
+    gpu_devices = tf.config.list_physical_devices('GPU')
+    print('Num. of GPU devices:', len(gpu_devices))
+    for gpu in gpu_devices:
+        print(gpu)
+
     gpu_available = tf.test.is_gpu_available()
     print('GPU available:', gpu_available)
     keep_running = gpu_available or not args.gpu_only
