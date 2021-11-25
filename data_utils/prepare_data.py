@@ -6,7 +6,7 @@ validation data.
 @author: s161488
 """
 import numpy as np
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 from tensorflow.contrib import image as contrib_image
 import cv2
 

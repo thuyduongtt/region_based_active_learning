@@ -5,7 +5,7 @@ This file is for selecting the most uncertain regions in each acquisition step b
 acquisition functions given the updated model
 @author: s161488
 """
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 
 from CONSTS import IM_PAD_HEIGHT, IM_PAD_WIDTH, IM_CHANNEL
 from data_utils.prepare_data import padding_training_data, prepare_train_data

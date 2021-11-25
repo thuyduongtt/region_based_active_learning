@@ -4,7 +4,7 @@ Created on Wed Mar  7 16:42:15 2018
 Full image based active learning on GlaS dataset
 @author: s161488
 """
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 from data_utils.prepare_data import prepare_train_data, padding_training_data, aug_train_data, generate_batch
 from models.inference import ResNet_V2_DMNN
 from optimization.loss_region_specific import Loss, train_op_batchnorm
