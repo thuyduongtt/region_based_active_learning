@@ -23,4 +23,4 @@ source ~/anaconda3/bin/activate ~/anaconda3/envs/act
 echo "module load nvidia/cuda/10.0"
 module load nvidia/cuda/10.0
 echo "start program ..."
-STORAGE_DEFAULT_DIRECTORY="$PWD/storage/" python3 Train_Active_Full_Im.py --stage 3
+STORAGE_DEFAULT_DIRECTORY="$PWD/storage/" python3 Train_Active_Full_Im.py --stage 3 --gpu_only
