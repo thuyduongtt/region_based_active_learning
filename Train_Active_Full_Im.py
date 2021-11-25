@@ -653,6 +653,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     gpu_available = tf.test.is_gpu_available()
+    print('GPU available:', gpu_available)
     keep_running = gpu_available or not args.gpu_only
 
     if keep_running:
