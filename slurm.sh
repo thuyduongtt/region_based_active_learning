@@ -19,6 +19,6 @@
 # SBATCH --mail-user=d@dttt.io
 
 ulimit -u 512
-source ~/virtualenv/bin/activate
+source ~/anaconda3/bin/activate
 module load nvidia/cuda/10.0
 STORAGE_DEFAULT_DIRECTORY="$PWD/storage/" python3 Train_Active_Full_Im.py --stage 3
