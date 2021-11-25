@@ -16,11 +16,11 @@ def sec_to_time(secconds):
 
 def list_devices():
     from tensorflow.python.client import device_lib
-    gpu_devices = device_lib.list_local_devices()
-    print('Num. of GPU devices:', len(gpu_devices))
-    for gpu in gpu_devices:
+    devices = device_lib.list_local_devices()
+    print('Num. of devices:', len(devices))
+    for d in devices:
         print('-------')
-        print('Name:', gpu.name)
-        print('Type:', gpu.device_type)
-        print('Memory limit:', int(gpu.memory_limit / 1024 / 1024), 'MB')
+        print('Name:', d.name)
+        print('Type:', d.device_type)
+        print('Memory limit:', int(d.memory_limit / 1024 / 1024), 'MB')
     print('=========')
