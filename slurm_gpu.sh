@@ -20,5 +20,5 @@
 
 ulimit -u 512
 source ~/anaconda3/bin/activate ~/anaconda3/envs/act
-module load nvidia/cuda/10.0
+module load nvidia/cuda/11.2
 STORAGE_DEFAULT_DIRECTORY="$PWD/storage/" python3 Train_Active_Full_Im.py --stage 3
