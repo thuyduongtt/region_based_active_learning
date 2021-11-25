@@ -646,6 +646,13 @@ def print_metrics(f1, accuracy_score, precision_score, recall_score, dice_score,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
+    parser.add_argument("--gpu_only", action='store_true', help='Run only when GPU is available')
     args = parser.parse_args()
 
-    running_loop_active_learning_full_image(args.stage, round_number=[0])
+    gpu_available = tf.test.is_gpu_available()
+    keep_running = gpu_available or not args.gpu_only
+
+    if keep_running:
+        running_loop_active_learning_full_image(args.stage, round_number=[0])
+    else:
+        print('GPU is needed to continue. Bye.')
