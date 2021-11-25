@@ -16,7 +16,7 @@ import argparse
 import time
 from pathlib import Path
 from CONSTS import *
-from utils import print_log, sec_to_time
+from utils import print_log, sec_to_time, list_devices
 
 from visualization import plot_multi
 
@@ -647,15 +647,12 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = "3"
 
+    list_devices()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
     parser.add_argument("--gpu_only", action='store_true', help='Run only when GPU is available')
     args = parser.parse_args()
-
-    gpu_devices = tf.config.list_physical_devices('GPU')
-    print('Num. of GPU devices:', len(gpu_devices))
-    for gpu in gpu_devices:
-        print(gpu)
 
     gpu_available = tf.test.is_gpu_available()
     print('GPU available:', gpu_available)
