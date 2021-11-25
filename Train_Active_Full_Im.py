@@ -644,6 +644,9 @@ def print_metrics(f1, accuracy_score, precision_score, recall_score, dice_score,
 
 
 if __name__ == '__main__':
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = "3"
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, required=True, help='0:random, 1:VarRatio, 2:Entropy, 3:BALD')
     parser.add_argument("--gpu_only", action='store_true', help='Run only when GPU is available')
