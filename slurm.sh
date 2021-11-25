@@ -15,15 +15,12 @@
 
 ## Job-Status per Mail
 # SBATCH --mail-type=ALL
-# SBATCH --mail-user=d@dttt.io
+# SBATCH --mail-user=t.tranthi@campus.tu-berlin.de
 
 ulimit -u 512
 rm -d output/ -r
 rm -d Exp_Stat/Method_D_Stage_3_Version_0/ -r
 
-echo "source ..."
 source ~/anaconda3/bin/activate ~/anaconda3/envs/act
-echo "module load nvidia/cuda/10.0"
 module load nvidia/cuda/10.0
-echo "start program ..."
-STORAGE_DEFAULT_DIRECTORY="$PWD/storage/" python3 Train_Active_Full_Im.py --stage 3 --gpu_only
+python3 Train_Active_Full_Im.py --stage 3 --gpu_only
