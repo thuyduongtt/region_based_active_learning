@@ -1,0 +1,10 @@
+name: test
+channels:
+  - defaults
+dependencies:
+  - pip
+  - python>=3.5
+  - pip:
+    - pytorch
+    - numpy
+
