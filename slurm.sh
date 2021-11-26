@@ -10,7 +10,7 @@
 
 ## Adjust to your needs
 # SBATCH --mem=25GB             # Memory limit per node
-# SBATCH --time=50:00:00        # Expected maximum run time
+# SBATCH --time=168:00:00        # Expected maximum run time
 # SBATCH --partition=standard   # This is for testing on CPU
 
 ## Job-Status per Mail
@@ -23,4 +23,4 @@ rm -d Exp_Stat/Method_D_Stage_3_Version_0/ -r
 
 source ~/anaconda3/bin/activate ~/anaconda3/envs/act
 module load nvidia/cuda/10.0
-python3 Train_Active_Full_Im.py --stage 3 --gpu_only
+python3 Train_Active_Full_Im.py --stage 3
