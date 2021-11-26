@@ -7,4 +7,4 @@ if __name__ == '__main__':
     print('GPU available:', gpu_available)
 
     with tf.Session(config=tf.ConfigProto(log_device_placement=True)).as_default() as sess:
-        print('Session has started !')
+        print('Session has started!')
