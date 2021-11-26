@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -J regional_active_learning    # Job Name
+#SBATCH -J al    # Job Name
 
 ## Leave these values as they are unless you know what you are doing
 #SBATCH --ntasks=1             # Tasks
@@ -11,7 +11,7 @@
 
 ## Adjust to your needs
 #SBATCH --mem=25GB             # Memory limit per node
-#SBATCH --time=50:00:00        # Expected maximum run time
+#SBATCH --time=72:00:00        # Expected maximum run time
 #SBATCH --partition=gpu        # This is needed to use a GPU
 
 ## Job-Status per Mail
