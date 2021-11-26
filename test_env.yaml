@@ -5,6 +5,6 @@ dependencies:
   - pip
   - python>=3.5
   - pip:
-    - pytorch
+    - torch
     - numpy
 
