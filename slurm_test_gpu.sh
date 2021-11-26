@@ -7,7 +7,7 @@
 #SBATCH --nodes=1              # Number of nodes
 #SBATCH --ntasks-per-core=2    # Number of processes per CPU code
 #SBATCH --cpus-per-task=1      # Number of CPUs per task?
-#SBATCH --gres=gpu:tesla:1     # Use 1 GPU per node
+#SBATCH --gres=gpu:tesla:2     # Use 1 GPU per node
 
 ## Adjust to your needs
 #SBATCH --mem=25GB             # Memory limit per node
