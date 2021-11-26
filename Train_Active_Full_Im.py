@@ -478,7 +478,7 @@ def train_full(resnet_ckpt, acq_method, acq_index_old, acq_index_update, ckpt_di
         print_log("The L2 regularization is turned on:", flag_l2_regu, file=log_file)
         print_log("=====================================================", file=log_file)
 
-        with tf.Session().as_default() as sess:
+        with tf.Session(config=tf.ConfigProto(log_device_placement=True)).as_default() as sess:
             if flag_pretrain is False:
                 sess.run(tf.global_variables_initializer())
                 sess.run(tf.local_variables_initializer())
