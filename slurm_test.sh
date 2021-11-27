@@ -20,5 +20,4 @@
 ulimit -u 512
 
 source activate act
-module load nvidia/cuda/10.0
 python3 tf.py
