@@ -1,4 +1,4 @@
-if __name__ == '__main__':
+def test_tf():
     import tensorflow as tf
     from utils import list_devices
 
@@ -8,3 +8,13 @@ if __name__ == '__main__':
 
     with tf.Session(config=tf.ConfigProto(log_device_placement=True)).as_default() as sess:
         print('Session has started!')
+
+
+def test_pt():
+    import torch
+    print('GPU available:', torch.cuda.is_available())
+
+
+if __name__ == '__main__':
+    # test_tf()
+    test_pt()
