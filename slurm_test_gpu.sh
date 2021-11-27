@@ -20,6 +20,6 @@
 
 ulimit -u 512
 
-source ~/anaconda3/bin/activate ~/anaconda3/envs/act
+source activate act
 module load nvidia/cuda/10.0
 python3 tf.py

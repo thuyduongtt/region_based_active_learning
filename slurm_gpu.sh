@@ -22,6 +22,6 @@ ulimit -u 512
 rm -d output/ -r
 rm -d Exp_Stat/Method_D_Stage_3_Version_0/ -r
 
-source ~/anaconda3/bin/activate ~/anaconda3/envs/act
+source activate act
 module load nvidia/cuda/10.0
 python3 Train_Active_Full_Im.py --stage 3
