@@ -140,7 +140,9 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
             global_var.CURRENT_ITERATION = acquire_single_step
             iter_start_time = time.time()
             log_file_path_iter = f'{OUTPUT_DIR}/log_{acquire_single_step}.txt'
-            print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path_iter)
+            print_log(
+                f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step} ({time.strftime("%d/%m/%Y %H:%M:%S")})\n====================================',
+                file_path=log_file_path_iter)
 
             if acq_index_old is not None:
                 acq_index_old = np.array(acq_index_old).astype('int64')
