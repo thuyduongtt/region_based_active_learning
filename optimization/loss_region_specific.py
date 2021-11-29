@@ -12,6 +12,8 @@ import numpy as np
 from sklearn.metrics import f1_score, roc_curve, auc, accuracy_score, precision_score, recall_score, jaccard_score
 from PIL import Image
 from pathlib import Path
+import time
+import global_var
 
 save_dir = 'output/images'
 
@@ -36,8 +38,9 @@ def calc_score(pred, label, func, timestamp=None, original_shape=None):
         # print(f'label: {label.min()}, {label.max()}, {dict(zip(unique_label, count_label))}')
 
         # export to images
-        if not Path(save_dir).exists():
-            Path(save_dir).mkdir(parents=True)
+        export_dir = f'{save_dir}_{global_var.CURRENT_ITERATION}'
+        if not Path(export_dir).exists():
+            Path(export_dir).mkdir(parents=True)
 
         pred_to_save = pred.reshape(original_shape)[0]
         label_to_save = label.reshape(original_shape)[0]
@@ -46,11 +49,11 @@ def calc_score(pred, label, func, timestamp=None, original_shape=None):
         label_to_save = (label_to_save * 255).astype(np.uint8).squeeze()
 
         img_pred = Image.fromarray(pred_to_save)
-        img_pred.save(f'{save_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_pred.png')
+        img_pred.save(f'{export_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_pred.png')
         img_label = Image.fromarray(label_to_save)
-        img_label.save(f'{save_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_label.png')
+        img_label.save(f'{export_dir}/{timestamp}__{str(score).replace(".", "_")}_{func.__name__}_label.png')
 
-        with open(f'{save_dir}/scores.txt', 'a') as f:
+        with open(f'{export_dir}/scores.txt', 'a') as f:
             print(f"{timestamp} {func.__name__}: {score}", file=f)
 
     return score
@@ -160,8 +163,8 @@ def Loss(logits, labels, binary_mask, auxi_weight, loss_name):
     pred_bi_cond_f1 = tf.equal(tf.reduce_sum(pred_bi), 0)
     y_bi_cond_f1 = tf.equal(tf.reduce_sum(y_bi), 0)
 
-    # timestamp = f'{loss_name}_{time.time()}'.replace('.', '_')
-    timestamp = None
+    timestamp = f'{loss_name}_{time.time()}'.replace('.', '_')
+    # timestamp = None
 
     accuracy = tf.cond(tf.logical_and(pred_bi_cond_f1, y_bi_cond_f1),
                        lambda: tf.constant(1.0),

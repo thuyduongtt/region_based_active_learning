@@ -16,5 +16,5 @@ def test_pt():
 
 
 if __name__ == '__main__':
-    # test_tf()
-    test_pt()
+    test_tf()
+    # test_pt()

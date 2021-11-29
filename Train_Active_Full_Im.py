@@ -4,20 +4,22 @@ Created on Wed Mar  7 16:42:15 2018
 Full image based active learning on GlaS dataset
 @author: s161488
 """
+import argparse
+import os
+import time
+from pathlib import Path
+
+import numpy as np
 import tensorflow as tf
+from sklearn.utils import shuffle
+
+import global_var
+from CONSTS import *
 from data_utils.prepare_data import prepare_train_data, padding_training_data, aug_train_data, generate_batch
 from models.inference import ResNet_V2_DMNN
 from optimization.loss_region_specific import Loss, train_op_batchnorm
 from select_images import selection
-from sklearn.utils import shuffle
-import numpy as np
-import os
-import argparse
-import time
-from pathlib import Path
-from CONSTS import *
 from utils import print_log, sec_to_time, list_devices
-
 from visualization import plot_multi
 
 # print("--------------------------------------------------------------")
@@ -135,6 +137,7 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
         logs_path = os.path.join(exp_dir, 'Method_%s_Stage_%d_Version_%d' % (acq_selec_method, stage, single_round_number))
 
         for acquire_single_step in range(total_active_step):
+            global_var.CURRENT_ITERATION = acquire_single_step
             iter_start_time = time.time()
             log_file_path_iter = f'{OUTPUT_DIR}/log_{acquire_single_step}.txt'
             print_log(f'====================================\n===== AL iteration: {acquire_single_step} / {total_active_step}\n====================================', file_path=log_file_path_iter)
