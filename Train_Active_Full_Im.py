@@ -302,7 +302,8 @@ def running_loop_active_learning_full_image(stage, round_number=[0, 1, 2]):
 
             iter_end_time = time.time()
             iter_time = iter_end_time - iter_start_time
-            print_log(f'Iteration Time: {iter_time:.0f}s - {sec_to_time(iter_time)}', file=log_file_iter)
+            print_log(f'====================================\nEnd iteration ({time.strftime("%d/%m/%Y %H:%M:%S")})', file=log_file_iter)
+            print_log(f'Iteration time: {iter_time:.0f}s - {sec_to_time(iter_time)}', file=log_file_iter)
 
             log_file_iter.close()
 
