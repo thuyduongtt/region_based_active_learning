@@ -11,7 +11,7 @@
 
 ## Adjust to your needs
 #SBATCH --mem=25GB             # Memory limit per node
-#SBATCH --time=72:00:00        # Expected maximum run time
+#SBATCH --time=240:00:00       # Expected maximum run time
 #SBATCH --partition=gpu        # This is needed to use a GPU
 
 ## Job-Status per Mail
